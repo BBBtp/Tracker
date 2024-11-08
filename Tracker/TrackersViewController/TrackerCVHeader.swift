@@ -1,10 +1,4 @@
 
-//
-//  TrackerCVHeader.swift
-//  TrackerApp
-//
-//  Created by Гена Утин on 10.10.2024.
-//
 import UIKit
 
 final class TrackerCVHeader: UICollectionReusableView {

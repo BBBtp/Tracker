@@ -10,7 +10,7 @@ final class TrackersViewController: UIViewController {
     let trackTitle = UILabel()
     var placeholderImageView = UIImageView()
     let placeholderLabel = UILabel()
-   
+    
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -47,6 +47,7 @@ final class TrackersViewController: UIViewController {
 }
 
 extension TrackersViewController {
+    
     private func addTracker(to category: TrackerCategoryModel, tracker: TrackerModel) {
         if let index = categories.firstIndex(where: { $0.title == category.title }) {
             let updatedCategory = TrackerCategoryModel(
@@ -59,20 +60,18 @@ extension TrackersViewController {
             categories.append(newCategory)
         }
         trackerCreationDates[tracker.id] = datePicker.date
-        
         trackers.append(tracker)
         collectionView.reloadData()
         setupPlaceholder()
     }
-
+    
     private func addTracker(tracker: TrackerModel) {
         addTracker(to: defaultCategory, tracker: tracker)
     }
-
+    
     private func addIrregularEvent(tracker: TrackerModel) {
         addTracker(to: irregularCategory, tracker: tracker)
     }
-
     
     private func isIrregularEvent(trackerId: UUID) -> Bool {
         return categories.flatMap({ $0.trackers }).first(where: { $0.id == trackerId })?.type == .irregularEvent
