@@ -16,9 +16,9 @@ struct TrackerModel {
     let timeTable: [WeekDay]
     let type: TrackerType 
 }
-enum TrackerType {
-    case habit
-    case irregularEvent
+enum TrackerType:Int {
+    case habit = 1
+    case irregularEvent = 2
 }
 
 enum WeekDay: Int, CaseIterable {
