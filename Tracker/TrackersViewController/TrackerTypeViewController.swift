@@ -8,7 +8,6 @@ final class TrackerTypeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        
         setLabel()
         setupUI()
     }
@@ -51,7 +50,6 @@ final class TrackerTypeViewController: UIViewController {
         label.textAlignment = .center
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.translatesAutoresizingMaskIntoConstraints = false
-        
         view.addSubview(label)
         
         NSLayoutConstraint.activate([
@@ -61,31 +59,24 @@ final class TrackerTypeViewController: UIViewController {
     }
     
     private func createButton(title: String, action: Selector) -> UIButton {
-        
         let button = UIButton()
         button.translatesAutoresizingMaskIntoConstraints = false
         button.backgroundColor = .black
         button.layer.cornerRadius = 16
         button.setTitle(title, for: .normal)
         button.addTarget(self, action: action, for: .touchUpInside)
-        
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        
         button.addTarget(self, action: #selector(buttonPressed(_:)), for: .touchDown)
         button.addTarget(self, action: #selector(buttonReleased(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        
-        
         button.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
         return button
     }
-    
-    
+
     @objc private func buttonPressed(_ sender: UIButton) {
         sender.backgroundColor = .darkGray
     }
-    
-    
+
     @objc private func buttonReleased(_ sender: UIButton) {
         sender.backgroundColor = .black
     }

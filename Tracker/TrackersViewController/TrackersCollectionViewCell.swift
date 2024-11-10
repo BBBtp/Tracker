@@ -8,7 +8,7 @@ protocol TrackersCellDelegate: AnyObject {
 final class TrackersCollectionViewCell: UICollectionViewCell {
     
     static let cellIdentifier = "TrackerCell"
-    private var daysCounter = 0
+    private var daysCounter: Int = .zero
     
     // UI элементы
     let coloredRectangleView = UIView()
@@ -61,7 +61,7 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         
         coloredRectangleView.backgroundColor = .blue
         whiteEmojiBackground.backgroundColor = UIColor.white.withAlphaComponent(0.3)
-        emojiLabel.font = UIFont.systemFont(ofSize: 16)
+        emojiLabel.font = UIFont.systemFont(ofSize: 13)
         emojiLabel.textAlignment = .center
         mainLabel.font = UIFont.systemFont(ofSize: 12)
         mainLabel.numberOfLines = 0
@@ -90,6 +90,7 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
             
             emojiLabel.centerXAnchor.constraint(equalTo: whiteEmojiBackground.centerXAnchor),
             emojiLabel.centerYAnchor.constraint(equalTo: whiteEmojiBackground.centerYAnchor),
+           
             
             mainLabel.leadingAnchor.constraint(equalTo: coloredRectangleView.leadingAnchor, constant: 12),
             mainLabel.trailingAnchor.constraint(equalTo: coloredRectangleView.trailingAnchor, constant: -12),

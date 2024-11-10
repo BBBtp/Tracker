@@ -35,14 +35,14 @@ extension SheduleViewController: UITabBarDelegate, UITableViewDataSource {
         cell.textLabel?.text = day
         
         let daySwitch = UISwitch()
-        daySwitch.onTintColor = .blue
+        daySwitch.onTintColor = .ypBlue
         daySwitch.tag = indexPath.row
         daySwitch.isOn = selectedDays[indexPath.row] ?? false
         daySwitch.addTarget(self, action: #selector(switchChanged(_:)), for: .valueChanged)
         
         cell.accessoryView = daySwitch
         cell.selectionStyle = .none
-        cell.backgroundColor = .ypLightGray
+        cell.backgroundColor = .ypShedule
         return cell
     }
 }
@@ -68,7 +68,7 @@ extension SheduleViewController {
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = false
         tableView.separatorStyle = .singleLine
-        tableView.backgroundColor = .lightGray
+        tableView.backgroundColor = .ypShedule
         tableView.translatesAutoresizingMaskIntoConstraints = false
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -82,8 +82,7 @@ extension SheduleViewController {
         NSLayoutConstraint.activate([
             title.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
             title.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            
+            stackView.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 39),
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
