@@ -16,9 +16,13 @@ protocol CreateHabbitDelegate: AnyObject {
 
 final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     
-    private let sheduleTableView: UITableView = {
+    var isHabitOrRegular = false
+    
+    private lazy var sheduleTableView: UITableView = {
         let tableView = UITableView()
         tableView.register(CustomTableViewCell.self, forCellReuseIdentifier: "customCell")
+        tableView.delegate = self
+        tableView.dataSource = self
         tableView.separatorStyle = .none
         tableView.rowHeight = 75
         tableView.estimatedRowHeight = 75
@@ -26,7 +30,7 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
         tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = false
-        tableView.backgroundColor = .lightGray
+        tableView.backgroundColor = .ypShedule
         return tableView
     }()
     
@@ -46,24 +50,17 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     
     private var selectedWeekDays: [WeekDay] = []
     
-    var isHabitOrRegular = false
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         inputNameCategory.delegate = self
         setupUI()
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
-        view.addGestureRecognizer(tapGesture)
+        
     }
 }
 
 extension CreateHabbitViewController {
-    @objc private func hideKeyboard() {
-        view.endEditing(true)
-    }
-    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
@@ -99,9 +96,9 @@ extension CreateHabbitViewController: UITableViewDelegate, UITableViewDataSource
             scheduleVC.modalPresentationStyle = .pageSheet
             scheduleVC.delegate = self
             self.present(scheduleVC, animated: true, completion: nil)
+          
         }
-        
-        
+    
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
@@ -157,20 +154,10 @@ extension CreateHabbitViewController {
         inputNameCategory.leftView = leftIndent
         inputNameCategory.leftViewMode = .always
         let rightIndent = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: inputNameCategory.frame.height))
+        
         inputNameCategory.rightView = rightIndent
         inputNameCategory.rightViewMode = .always
-        sheduleTableView.dataSource = self
-        sheduleTableView.delegate = self
-        sheduleTableView.register(CustomTableViewCell.self, forCellReuseIdentifier: "customCell")
         sheduleTableView.separatorStyle = isHabitOrRegular ? .singleLine : .none
-        sheduleTableView.rowHeight = 75
-        sheduleTableView.estimatedRowHeight = 75
-        sheduleTableView.layer.cornerRadius = 16
-        sheduleTableView.showsVerticalScrollIndicator = false
-        sheduleTableView.translatesAutoresizingMaskIntoConstraints = false
-        sheduleTableView.isScrollEnabled = false
-        sheduleTableView.separatorStyle = isHabitOrRegular ? .singleLine : .none
-        sheduleTableView.backgroundColor = .ypShedule
         let stackView = UIStackView(arrangedSubviews: [inputNameCategory,warningLabel, sheduleTableView])
         stackView.axis = .vertical
         stackView.spacing = 24
@@ -189,9 +176,7 @@ extension CreateHabbitViewController {
         ])
         
         inputNameCategory.heightAnchor.constraint(equalToConstant: 75).isActive = true
-        
         sheduleTableView.heightAnchor.constraint(equalToConstant: CGFloat(isHabitOrRegular ? (2*75) : (1*75))).isActive = true
-        
         let stackViewButtons = UIStackView()
         stackViewButtons.axis = .horizontal
         stackViewButtons.spacing = 8

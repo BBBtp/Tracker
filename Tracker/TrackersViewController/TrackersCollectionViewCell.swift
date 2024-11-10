@@ -49,16 +49,6 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupUI() {
-        
-        coloredRectangleView.translatesAutoresizingMaskIntoConstraints = false
-        whiteEmojiBackground.translatesAutoresizingMaskIntoConstraints = false
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        mainLabel.translatesAutoresizingMaskIntoConstraints = false
-        nonColoredRectangleView.translatesAutoresizingMaskIntoConstraints = false
-        daysCounterLabel.translatesAutoresizingMaskIntoConstraints = false
-        coloredCircleButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        
         coloredRectangleView.backgroundColor = .blue
         whiteEmojiBackground.backgroundColor = UIColor.white.withAlphaComponent(0.3)
         emojiLabel.font = UIFont.systemFont(ofSize: 13)
@@ -73,6 +63,7 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         
         
         [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton].forEach {
+            $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
         }
         

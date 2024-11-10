@@ -67,18 +67,7 @@ final class TrackersViewController: UIViewController {
         searchTextField.delegate = self
         setupUI()
         collectionView.reloadData()
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(hideKeyboard))
-        view.addGestureRecognizer(tapGesture)
     }
-}
-
-//MARK: SearchBarHidden
-extension TrackersViewController {
-    @objc private func hideKeyboard() {
-        view.endEditing(true)
-    }
-
 }
 // MARK: - Trackers Handling
 extension TrackersViewController {
