@@ -10,7 +10,28 @@ final class TrackersViewController: UIViewController {
     let trackTitle = UILabel()
     var placeholderImageView = UIImageView()
     let placeholderLabel = UILabel()
-   
+    
+    private let trackerStore = TrackerStore()
+    private let trackerRecordStore = TrackerRecordStore()
+    private let trackerCategoryStore = TrackerCategoryStore()
+    
+    private func setupData() {
+        trackerCategoryStore.fetchCategories { [weak self] categories in
+            guard let self = self else { return }
+            self.categories = categories
+            trackerStore.fetchTrackers{
+                [weak self] trackers in
+                self?.trackers = trackers
+            }
+            trackerRecordStore.fetchRecords {
+                [weak self] records in
+                self?.completedTrackers = records
+                print(records.count)
+            }
+            self.collectionView.reloadData()
+            self.setupPlaceholder()
+        }
+    }
     
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -41,41 +62,52 @@ final class TrackersViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         setupUI()
-        collectionView.reloadData()
+        setupData()
+        
     }
     
 }
 
 extension TrackersViewController {
     private func addTracker(to category: TrackerCategoryModel, tracker: TrackerModel) {
-        if let index = categories.firstIndex(where: { $0.title == category.title }) {
-            
-            let updatedCategory = TrackerCategoryModel(
-                title: category.title,
-                trackers: categories[index].trackers + [tracker]
-            )
-            categories[index] = updatedCategory
-        } else {
-            
-            let newCategory = TrackerCategoryModel(title: category.title, trackers: [tracker])
-            categories.append(newCategory)
-        }
-        trackerCreationDates[tracker.id] = datePicker.date
         
-        trackers.append(tracker)
-        collectionView.reloadData()
-        setupPlaceholder()
+        trackerStore.addTracker(to: category, tracker: tracker){
+            [weak self] completion in
+            DispatchQueue.main .async {
+                guard completion else {
+                    print("Не удалось добавить трекер в базу данных.")
+                    return
+                }
+                if let index = self?.categories.firstIndex(where: { $0.title == category.title }) {
+                    
+                    let updatedCategory = TrackerCategoryModel(
+                        title: category.title,
+                        trackers: (self?.categories[index].trackers)! + [tracker]
+                    )
+                    self?.categories[index] = updatedCategory
+                } else {
+                    
+                    let newCategory = TrackerCategoryModel(title: category.title, trackers: [tracker])
+                    self?.categories.append(newCategory)
+                }
+                self?.trackerCreationDates[tracker.id] = self?.datePicker.date
+                self?.trackers.append(tracker)
+                self?.collectionView.reloadData()
+                self?.setupPlaceholder()
+            }
+        }
+        
     }
-
-   
+    
+    
     private func addTracker(tracker: TrackerModel) {
         addTracker(to: defaultCategory, tracker: tracker)
     }
-
+    
     private func addIrregularEvent(tracker: TrackerModel) {
         addTracker(to: irregularCategory, tracker: tracker)
     }
-
+    
     
     private func isIrregularEvent(trackerId: UUID) -> Bool {
         return categories.flatMap({ $0.trackers }).first(where: { $0.id == trackerId })?.type == .irregularEvent
@@ -125,29 +157,38 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         return selectedWeekday
     }
     
-    func visibleTrackers(selectedWeekday: Int, selectedDate: Date, searchText: String) -> [TrackerModel]{
+    func visibleTrackers(selectedWeekday: Int, selectedDate: Date, searchText: String) -> [TrackerModel] {
         let visibleTrackers = trackers.filter { tracker in
             switch tracker.type {
             case .habit:
-                return tracker.timeTable.contains(WeekDay(rawValue: selectedWeekday)!) ||
-                tracker.title.lowercased().contains(searchText)
+                // Показываем привычки, если они должны быть на текущий день
+                let isVisible = tracker.timeTable.contains(WeekDay(rawValue: selectedWeekday)!) ||
+                                tracker.title.lowercased().contains(searchText)
+                return isVisible
+                
             case .irregularEvent:
                 if let creationDate = trackerCreationDates[tracker.id] {
-                    if Calendar.current.isDate(creationDate, inSameDayAs: selectedDate) {
-                        return true
-                    } else {
-                        return !completedTrackers.contains(where: { $0.id == tracker.id })
-                        ||
-                        tracker.title.lowercased().contains(searchText)
+                    // Показываем нерегулярное событие всегда, если оно не выполнено
+                    let isVisible = !completedTrackers.contains(where: { $0.id == tracker.id }) ||
+                                    tracker.title.lowercased().contains(searchText)
+                    
+                    // Если событие выполнено, показываем только в день выполнения
+                    if completedTrackers.contains(where: { $0.id == tracker.id }) {
+                        return Calendar.current.isDate(creationDate, inSameDayAs: selectedDate) || isVisible
                     }
+                    
+                    return isVisible
                 } else {
+                    // Если дата создания не установлена, показываем только если не выполнено
                     return !completedTrackers.contains(where: { $0.id == tracker.id }) ||
-                    tracker.title.lowercased().contains(searchText)
+                           tracker.title.lowercased().contains(searchText)
                 }
             }
         }
+        
         return visibleTrackers
     }
+
     
     func filterTrackers(for categories: [TrackerCategoryModel], selectedDate: Date, searchText: String) -> [TrackerCategoryModel] {
         let selectedWeekDay = selectedWeekDay(selectedDate: selectedDate)
@@ -295,6 +336,7 @@ extension TrackersViewController {
         let visible = visibleTrackers(selectedWeekday: selectedWeekday, selectedDate: selectedDate, searchText: searchText)
         placeholderImageView.isHidden = !visible.isEmpty
         placeholderLabel.isHidden = !visible.isEmpty
+        print("Visible Trackers Count: \(visible.count)")
     }
     
     func setupCollectionView() {
@@ -402,37 +444,40 @@ extension TrackersViewController: TrackersCellDelegate {
     func completeOrUncompleteTracker(trackerId: UUID, indexPath: IndexPath) {
         let date = datePicker.date
         guard !isFutureDate(date) else { return }
-        
-        if let existingRecordIndex = completedTrackers.firstIndex(where: { $0.id == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }) {
-            if isTracker(trackerId: trackerId){
-                completedTrackers.remove(at: existingRecordIndex)
-                completedTrackerAndIrregularIDs.remove(trackerId)
-                print("Трекер не выполнен: \(trackerId)")
-            }
-            
-            if isIrregularEvent(trackerId: trackerId) {
-                completedTrackers.remove(at: existingRecordIndex)
-                completedTrackerAndIrregularIDs.remove(trackerId)
-            }
-        } else {
-            
-            let newRecord = TrackerRecordModel(id: trackerId, date: date)
-            if isTracker(trackerId: trackerId){
-                completedTrackers.append(newRecord)
-                completedTrackerAndIrregularIDs.insert(trackerId)
-                print("Трекер выполнен: \(newRecord)")
-            }
-            
-            if isIrregularEvent(trackerId: trackerId) {
-                completedTrackers.append(newRecord)
-                completedTrackerAndIrregularIDs.insert(trackerId)
-                print("Irregular complete")
+
+        let trackerRecordStore = TrackerRecordStore()
+
+        trackerRecordStore.fetchRecords { [weak self] records in
+            guard let self = self else { return }
+
+            if records.first(where: { $0.id == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }) != nil {
+                // Удаляем запись, если она существует
+                trackerRecordStore.removeRecord(for: trackerId, date: date) { success in
+                    if success {
+                        self.completedTrackers.removeAll { $0.id == trackerId && Calendar.current.isDate($0.date, inSameDayAs: date) }
+                        self.completedTrackerAndIrregularIDs.remove(trackerId)
+                        self.collectionView.reloadItems(at: [indexPath])
+                    } else {
+                        print("Ошибка при удалении записи")
+                    }
+                }
+            } else {
+                // Добавляем событие, если оно ещё не выполнено
+                trackerRecordStore.addRecord(for: trackerId, date: date) { success in
+                    if success {
+                        let newRecord = TrackerRecordModel(id: trackerId, date: date)
+                        self.completedTrackers.append(newRecord)
+                        self.completedTrackerAndIrregularIDs.insert(trackerId)
+                        self.collectionView.reloadItems(at: [indexPath])
+                    } else {
+                        print("Ошибка при добавлении записи")
+                    }
+                }
             }
         }
         
-        
-        collectionView.reloadItems(at: [indexPath])
     }
+
     
 }
 

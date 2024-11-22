@@ -480,12 +480,13 @@ extension CreateHabbitViewController {
                     emoji: emoji
                 )
             } else {
-                let allDays: [WeekDay] = []
+                let allDays: [WeekDay] = [.monday,.thursday,.friday,.saturday,.sunday,.tuesday,.wednesday]
                 createHabbitDelegate?.didCreateIrregularEvent(
                     name: name,
                     days: allDays,
                     color: color,
                     emoji: emoji
+                   
                 )
                 
             }

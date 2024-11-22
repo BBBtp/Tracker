@@ -41,6 +41,7 @@ final class TrackerStore {
             newTracker.id = tracker.id
             newTracker.title = tracker.title
             newTracker.type = tracker.type == .habit ? 1 : 2
+            newTracker.emoji = tracker.emoji
             newTracker.color = uiColorMarshalling.ColorToString(from: tracker.color)
             newTracker.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(tracker.timeTable)
             
@@ -60,31 +61,45 @@ final class TrackerStore {
     func fetchTrackers(completion: @escaping ([TrackerModel]) -> Void) {
         let fetchRequest: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
         
+        // Указываем, что нужно подгружать категорию
+        fetchRequest.relationshipKeyPathsForPrefetching = ["category"]
+        
         do {
             let trackersFromCoreData = try context.fetch(fetchRequest)
-            let trackers: [TrackerModel] = trackersFromCoreData.compactMap { tracker in
+            
+            // Преобразуем данные в модели TrackerModel
+            let trackers: [TrackerModel] = trackersFromCoreData.compactMap { trackerCD in
                 guard
-                    let colorString = tracker.color,
-                    let timetableString = tracker.timeTable
+                    let id = trackerCD.id,
+                    let title = trackerCD.title,
+                    let colorString = trackerCD.color,
+                    let emoji = trackerCD.emoji,
+                    let timetableString = trackerCD.timeTable
                 else {
-                    return nil
+                   preconditionFailure("error get")
                 }
+                
                 let color = uiColorMarshalling.stringToColor(from: colorString)
                 let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(timetableString)
+                
+                let categoryTitle = trackerCD.category?.title ?? "No Category"
+                
                 return TrackerModel(
-                    id: tracker.id ?? UUID(),
-                    title: tracker.title ?? "",
+                    id: id,
+                    title: title,
                     color: color,
-                    emoji: tracker.emoji ?? "",
+                    emoji: emoji,
                     timeTable: weekDays,
-                    type: tracker.type == 1 ? .habit : .irregularEvent
+                    type: trackerCD.type == 1 ? .habit : .irregularEvent
                 )
             }
+            
             completion(trackers)
         } catch {
-            print("Failed to fetch trackers: \(error)")
+            print("Failed to fetch trackers: \(error.localizedDescription)")
             completion([])
         }
     }
+
 
 }
