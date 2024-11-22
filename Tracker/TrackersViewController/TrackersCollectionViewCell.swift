@@ -6,9 +6,8 @@ protocol TrackersCellDelegate: AnyObject {
 }
 
 final class TrackersCollectionViewCell: UICollectionViewCell {
-    
     static let cellIdentifier = "TrackerCell"
-    private var daysCounter = 0
+    private var daysCounter: Int = .zero
     
     // UI элементы
     let coloredRectangleView = UIView()
@@ -49,40 +48,35 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupUI() {
-        
-        coloredRectangleView.translatesAutoresizingMaskIntoConstraints = false
-        whiteEmojiBackground.translatesAutoresizingMaskIntoConstraints = false
-        emojiLabel.translatesAutoresizingMaskIntoConstraints = false
-        mainLabel.translatesAutoresizingMaskIntoConstraints = false
-        nonColoredRectangleView.translatesAutoresizingMaskIntoConstraints = false
-        daysCounterLabel.translatesAutoresizingMaskIntoConstraints = false
-        coloredCircleButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        
+        [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton].forEach {
+                    $0.translatesAutoresizingMaskIntoConstraints = false
+                    contentView.addSubview($0)
+                }
         coloredRectangleView.backgroundColor = .blue
         whiteEmojiBackground.backgroundColor = UIColor.white.withAlphaComponent(0.3)
-        emojiLabel.font = UIFont.systemFont(ofSize: 16)
+        
+        emojiLabel.font = UIFont.systemFont(ofSize: 13)
         emojiLabel.textAlignment = .center
+        
         mainLabel.font = UIFont.systemFont(ofSize: 12)
         mainLabel.numberOfLines = 0
         mainLabel.lineBreakMode = .byWordWrapping
         mainLabel.textColor = .white
+        
         daysCounterLabel.font = UIFont.systemFont(ofSize: 12)
         daysCounterLabel.textAlignment = .left
+        
         coloredCircleButton.addTarget(self, action: #selector(coloredCircleButtonTapped), for: .touchUpInside)
-        
-        
         [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton].forEach {
             contentView.addSubview($0)
         }
-        
         
         NSLayoutConstraint.activate([
             coloredRectangleView.topAnchor.constraint(equalTo: contentView.topAnchor),
             coloredRectangleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             coloredRectangleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             coloredRectangleView.heightAnchor.constraint(equalToConstant: 90),
-            
+
             whiteEmojiBackground.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             whiteEmojiBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             whiteEmojiBackground.widthAnchor.constraint(equalToConstant: 24),
@@ -109,8 +103,7 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
             daysCounterLabel.leadingAnchor.constraint(equalTo: nonColoredRectangleView.leadingAnchor, constant: 12)
         ])
     }
-    
-    
+
     func configure(with tracker: TrackerModel, isCompletedToday: Bool, completedDays: Int, indexPath: IndexPath) {
         self.trackerId = tracker.id
         self.indexPath = indexPath
@@ -120,8 +113,6 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         coloredRectangleView.backgroundColor = tracker.color
         updateCircleButton(isCompleted: isCompletedToday)
         daysCounterLabel.text = pluralizeDays(completedDays)
-        
-        
     }
     
     private func updateCircleButton(isCompleted: Bool) {
