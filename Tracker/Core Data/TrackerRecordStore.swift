@@ -13,7 +13,6 @@ final class TrackerRecordStore {
         self.context = context
     }
     
-    // Добавление новой записи
     func addRecord(for id: UUID, date: Date, completion: @escaping (Bool) -> Void) {
         let fetchRequest: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
@@ -24,11 +23,7 @@ final class TrackerRecordStore {
                 newRecord.date = date
                 newRecord.id = id
                 newRecord.trackerRecords = trackerEntity
-                
-                // Добавляем запись в отношение
                 trackerEntity.addToRecords(newRecord)
-                
-                // Сохраняем изменения
                 CoreDataManager.shared.saveContext()
                 completion(true)
             } else {
@@ -41,10 +36,9 @@ final class TrackerRecordStore {
         }
     }
     
-    // Удаление записи
     func removeRecord(for trackerId: UUID, date: Date, completion: @escaping (Bool) -> Void) {
         let fetchRequest: NSFetchRequest<TrackerRecordCD> = TrackerRecordCD.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "trackerRecords.id == %@ ", trackerId as CVarArg)
+        fetchRequest.predicate = NSPredicate(format: "trackerRecords.id == %@", trackerId as CVarArg)
         
         do {
             if let recordToDelete = try context.fetch(fetchRequest).first {
@@ -61,7 +55,6 @@ final class TrackerRecordStore {
         }
     }
     
-    // Получение всех записей
     func fetchRecords(completion: @escaping ([TrackerRecordModel]) -> Void) {
         let fetchRequest: NSFetchRequest<TrackerRecordCD> = TrackerRecordCD.fetchRequest()
         

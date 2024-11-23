@@ -14,8 +14,6 @@ final class TrackerCategoryStore {
     private let uiColorMarshalling = UIColorTransformer()
     private let uiWeekDayMarshalling = WeekDayArrayTransformer()
     
-    // MARK: - Инициализация
-    
     convenience init() {
         let context = CoreDataManager.shared.context
         self.init(context: context)
@@ -25,9 +23,6 @@ final class TrackerCategoryStore {
         self.context = context
     }
     
-    // MARK: - Методы управления категориями
-    
-    // Добавление категории
     func addCategory(title: String, completion: @escaping (Bool) -> Void) {
         let newCategory = TrackerCategoryCD(context: context)
         newCategory.title = title
@@ -41,14 +36,12 @@ final class TrackerCategoryStore {
         }
     }
     
-    // Получение всех категорий
     func fetchCategories(completion: @escaping ([TrackerCategoryModel]) -> Void) {
         let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
         
         do {
             let categoriesFromCoreData = try context.fetch(fetchRequest)
             let categories = categoriesFromCoreData.map { category -> TrackerCategoryModel in
-                // Преобразуем NSSet в массив
                 let trackersArray: [TrackerModel] = (category.trackers as? Set<TrackerCD>)?.compactMap { trackerCD in
                     guard
                         let colorString = trackerCD.color,
@@ -56,7 +49,6 @@ final class TrackerCategoryStore {
                     else {
                         return nil
                     }
-                    
                     let color = uiColorMarshalling.stringToColor(from: colorString)
                     let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(timetableString)
                     
@@ -82,9 +74,9 @@ final class TrackerCategoryStore {
         }
     }
 
-
-    // Удаление категории
-    func deleteCategory(_ category: TrackerCategoryModel, completion: @escaping (Bool) -> Void) {
+    func deleteCategory(_ category: TrackerCategoryModel, 
+                        completion: @escaping (Bool) -> Void
+    ) {
         let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
         
@@ -103,8 +95,10 @@ final class TrackerCategoryStore {
         }
     }
     
-    // Обновление категории
-    func updateCategory(_ category: TrackerCategoryModel, newTitle: String, completion: @escaping (Bool) -> Void) {
+    func updateCategory(_ category: TrackerCategoryModel, 
+                        newTitle: String,
+                        completion: @escaping (Bool) -> Void
+    ) {
         let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
         
