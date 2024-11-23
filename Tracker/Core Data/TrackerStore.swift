@@ -22,7 +22,10 @@ final class TrackerStore {
         self.context = context
     }
     
-    func addTracker(to category: TrackerCategoryModel, tracker: TrackerModel, completion: @escaping (Bool) -> Void) {
+    func addTracker(to category: TrackerCategoryModel, 
+                    tracker: TrackerModel,
+                    completion: @escaping (Bool) -> Void
+    ) {
         let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
         
@@ -36,7 +39,6 @@ final class TrackerStore {
                 categoryEntity = TrackerCategoryCD(context: context)
                 categoryEntity.title = category.title
             }
-            
             let newTracker = TrackerCD(context: context)
             newTracker.id = tracker.id
             newTracker.title = tracker.title
@@ -44,13 +46,10 @@ final class TrackerStore {
             newTracker.emoji = tracker.emoji
             newTracker.color = uiColorMarshalling.ColorToString(from: tracker.color)
             newTracker.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(tracker.timeTable)
-            
             newTracker.category = categoryEntity
             categoryEntity.addToTrackers(newTracker)
             
-            
             CoreDataManager.shared.saveContext()
-            
             completion(true)
         } catch {
             print("Error adding tracker: \(error)")
@@ -60,14 +59,11 @@ final class TrackerStore {
     
     func fetchTrackers(completion: @escaping ([TrackerModel]) -> Void) {
         let fetchRequest: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
-        
-        // Указываем, что нужно подгружать категорию
+    
         fetchRequest.relationshipKeyPathsForPrefetching = ["category"]
         
         do {
             let trackersFromCoreData = try context.fetch(fetchRequest)
-            
-            // Преобразуем данные в модели TrackerModel
             let trackers: [TrackerModel] = trackersFromCoreData.compactMap { trackerCD in
                 guard
                     let id = trackerCD.id,
@@ -78,10 +74,8 @@ final class TrackerStore {
                 else {
                    preconditionFailure("error get")
                 }
-                
                 let color = uiColorMarshalling.stringToColor(from: colorString)
                 let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(timetableString)
-                
                 let categoryTitle = trackerCD.category?.title ?? "No Category"
                 
                 return TrackerModel(
@@ -93,13 +87,10 @@ final class TrackerStore {
                     type: trackerCD.type == 1 ? .habit : .irregularEvent
                 )
             }
-            
             completion(trackers)
         } catch {
             print("Failed to fetch trackers: \(error.localizedDescription)")
             completion([])
         }
     }
-
-
 }
