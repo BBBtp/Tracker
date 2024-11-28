@@ -4,10 +4,7 @@
 //
 //  Created by Богдан Топорин on 09.11.2024.
 //
-
 import Foundation
-import CoreData
-
 
 class WeekDayArrayTransformer{
     func WeekDayArrayToString(_ value: [WeekDay]) -> String {
@@ -15,6 +12,10 @@ class WeekDayArrayTransformer{
     }
     
     func StringToWeekDayArray(_ value: String) -> [WeekDay] {
-        return value.split(separator: ",").compactMap {WeekDay(rawValue: Int($0)!)}
+        return value.split(separator: ",").compactMap { rawValue in
+            guard let intValue = Int(rawValue) else { return nil }
+            return WeekDay(rawValue: intValue)
+        }
     }
+
 }

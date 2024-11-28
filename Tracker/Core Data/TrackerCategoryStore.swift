@@ -1,120 +1,101 @@
-//
-//  TrackerCategory.swift
-//  Tracker
-//
-//  Created by Богдан Топорин on 09.11.2024.
-//
-
 import Foundation
 import CoreData
 import UIKit
 
-final class TrackerCategoryStore {
+struct TrackerCategoryStoreUpdate {
+    let insertedIndices: [IndexPath]
+    let deletedIndices: [IndexPath]
+    let updatedIndices: [IndexPath]
+    let movedIndices: [(from: IndexPath, to: IndexPath)]
+}
+protocol TrackerCategoryStoreDelegate: AnyObject {
+    func didUpdate(_ update: TrackerCategoryStoreUpdate)
+}
+final class TrackerCategoryStore: NSObject {
     private let context: NSManagedObjectContext
     private let uiColorMarshalling = UIColorTransformer()
     private let uiWeekDayMarshalling = WeekDayArrayTransformer()
-    
-    convenience init() {
+    weak var delegate: TrackerCategoryStoreDelegate?
+    private var insertedIndices: [IndexPath] = []
+    private var deletedIndices: [IndexPath] = []
+    private var updatedIndices: [IndexPath] = []
+    private var movedIndices: [(from: IndexPath, to: IndexPath)] = []
+    private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCD> = {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "trackers.@count > 0")
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+
+        let controller = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = self
+        return controller
+    }()
+
+    convenience override init() {
         let context = CoreDataManager.shared.context
         self.init(context: context)
     }
-    
+
     init(context: NSManagedObjectContext) {
         self.context = context
-    }
-    
-    func addCategory(title: String, completion: @escaping (Bool) -> Void) {
-        let newCategory = TrackerCategoryCD(context: context)
-        newCategory.title = title
-        
-        do {
-            try context.save()
-            completion(true)
-        } catch {
-            print("Failed to add category: \(error)")
-            completion(false)
-        }
-    }
-    
-    func fetchCategories(completion: @escaping ([TrackerCategoryModel]) -> Void) {
-        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-        
-        do {
-            let categoriesFromCoreData = try context.fetch(fetchRequest)
-            let categories = categoriesFromCoreData.map { category -> TrackerCategoryModel in
-                let trackersArray: [TrackerModel] = (category.trackers as? Set<TrackerCD>)?.compactMap { trackerCD in
-                    guard
-                        let colorString = trackerCD.color,
-                        let timetableString = trackerCD.timeTable
-                    else {
-                        return nil
-                    }
-                    let color = uiColorMarshalling.stringToColor(from: colorString)
-                    let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(timetableString)
-                    
-                    return TrackerModel(
-                        id: trackerCD.id ?? UUID(),
-                        title: trackerCD.title ?? "",
-                        color: color,
-                        emoji: trackerCD.emoji ?? "",
-                        timeTable: weekDays,
-                        type: trackerCD.type == 1 ? .habit : .irregularEvent
-                    )
-                } ?? []
-                
-                return TrackerCategoryModel(
-                    title: category.title ?? "",
-                    trackers: trackersArray
-                )
-            }
-            completion(categories)
-        } catch {
-            print("Failed to fetch categories: \(error)")
-            completion([])
-        }
-    }
-
-    func deleteCategory(_ category: TrackerCategoryModel, 
-                        completion: @escaping (Bool) -> Void
-    ) {
-        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
-        
-        do {
-            let categories = try context.fetch(fetchRequest)
-            if let categoryToDelete = categories.first {
-                context.delete(categoryToDelete)
-                try context.save()
-                completion(true)
-            } else {
-                completion(false)
-            }
-        } catch {
-            print("Failed to delete category: \(error)")
-            completion(false)
-        }
-    }
-    
-    func updateCategory(_ category: TrackerCategoryModel, 
-                        newTitle: String,
-                        completion: @escaping (Bool) -> Void
-    ) {
-        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
-        
-        do {
-            let categories = try context.fetch(fetchRequest)
-            if let categoryToUpdate = categories.first {
-                categoryToUpdate.title = newTitle
-                try context.save()
-                completion(true)
-            } else {
-                completion(false)
-            }
-        } catch {
-            print("Failed to update category: \(error)")
-            completion(false)
-        }
+        super.init()
     }
 }
 
+extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
+    var numberOfSections: Int {
+            fetchedResultsController.sections?.count ?? 0
+        }
+        
+        func numberOfItemsInSection(_ section: Int) -> Int {
+            fetchedResultsController.sections?[section].numberOfObjects ?? 0
+        }
+    
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+            insertedIndices.removeAll()
+            deletedIndices.removeAll()
+            updatedIndices.removeAll()
+            movedIndices.removeAll()
+        }
+        
+        func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                        didChange anObject: Any,
+                        at indexPath: IndexPath?,
+                        for type: NSFetchedResultsChangeType,
+                        newIndexPath: IndexPath?) {
+            switch type {
+            case .delete:
+                if let indexPath {
+                    deletedIndices.append(indexPath)
+                }
+            case .insert:
+                if let newIndexPath {
+                    insertedIndices.append(newIndexPath)
+                }
+            case .update:
+                if let indexPath {
+                    updatedIndices.append(indexPath)
+                }
+            case .move:
+                if let oldIndexPath = indexPath, let newIndexPath = newIndexPath {
+                    movedIndices.append((from: oldIndexPath, to: newIndexPath))
+                }
+            @unknown default:
+                break
+            }
+        }
+        
+        func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+            let update = TrackerCategoryStoreUpdate(
+                insertedIndices: insertedIndices,
+                deletedIndices: deletedIndices,
+                updatedIndices: updatedIndices,
+                movedIndices: movedIndices
+            )
+            delegate?.didUpdate(update)
+        }
+}

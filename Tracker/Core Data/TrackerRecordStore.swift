@@ -1,19 +1,26 @@
 import Foundation
 import CoreData
+import UIKit
 
-final class TrackerRecordStore {
+final class TrackerRecordStore: NSObject {
     private let context: NSManagedObjectContext
+   
+    private var insertedIndexes: [IndexPath] = []
+    private var deletedIndexes: [IndexPath] = []
+    private var updatedIndexes: [IndexPath] = []
+    private var movedIndexes: [(from: IndexPath, to: IndexPath)] = []
     
-    convenience init() {
+    convenience override init() {
         let context = CoreDataManager.shared.context
         self.init(context: context)
     }
     
     init(context: NSManagedObjectContext) {
         self.context = context
+        super.init()
     }
     
-    func addRecord(for id: UUID, date: Date, completion: @escaping (Bool) -> Void) {
+    func addRecord(for id: UUID, date: Date) -> Bool {
         let fetchRequest: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         
@@ -24,73 +31,34 @@ final class TrackerRecordStore {
                 newRecord.id = id
                 newRecord.trackerRecords = trackerEntity
                 trackerEntity.addToRecords(newRecord)
-                CoreDataManager.shared.saveContext()
-                completion(true)
+                try context.save()
+                return true
             } else {
                 print("Tracker not found for ID: \(id)")
-                completion(false)
+                return false
             }
         } catch {
             print("Error adding record: \(error)")
-            completion(false)
+            return false
         }
     }
     
-    func removeRecord(for trackerId: UUID, date: Date, completion: @escaping (Bool) -> Void) {
+    func removeRecord(for trackerId: UUID, date: Date) -> Bool {
         let fetchRequest: NSFetchRequest<TrackerRecordCD> = TrackerRecordCD.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "trackerRecords.id == %@", trackerId as CVarArg)
         
         do {
             if let recordToDelete = try context.fetch(fetchRequest).first {
                 context.delete(recordToDelete)
-                CoreDataManager.shared.saveContext()
-                completion(true)
+                try context.save()
+                return true
             } else {
                 print("Record not found for trackerId: \(trackerId) and date: \(date)")
-                completion(false)
+                return false
             }
         } catch {
             print("Error deleting record: \(error)")
-            completion(false)
-        }
-    }
-    
-    func fetchRecords(completion: @escaping ([TrackerRecordModel]) -> Void) {
-        let fetchRequest: NSFetchRequest<TrackerRecordCD> = TrackerRecordCD.fetchRequest()
-        
-        do {
-            let recordsFromCoreData = try context.fetch(fetchRequest)
-            let records: [TrackerRecordModel] = recordsFromCoreData.compactMap { record in
-                guard
-                    let date = record.date,
-                    let trackerEntity = record.trackerRecords,
-                    let trackerID = trackerEntity.id,
-                    let trackerTitle = trackerEntity.title,
-                    let colorString = trackerEntity.color,
-                    let timetableString = trackerEntity.timeTable
-                else {
-                   
-                    return nil
-                }
-                
-                let color = UIColorTransformer().stringToColor(from: colorString)
-                let weekDays = WeekDayArrayTransformer().StringToWeekDayArray(timetableString)
-                
-                let trackerModel = TrackerModel(
-                    id: trackerID,
-                    title: trackerTitle,
-                    color: color,
-                    emoji: trackerEntity.emoji ?? "",
-                    timeTable: weekDays,
-                    type: trackerEntity.type == 1 ? .habit : .irregularEvent
-                )
-                
-                return TrackerRecordModel(id: trackerModel.id, date: date)
-            }
-            completion(records)
-        } catch {
-            print("Ошибка при получении записей: \(error)")
-            completion([])
+            return false
         }
     }
 }

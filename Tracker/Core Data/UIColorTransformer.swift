@@ -1,6 +1,5 @@
 import UIKit
 
-
 class UIColorTransformer {
     func ColorToString(from color: UIColor) -> String {
         let components = color.cgColor.components
