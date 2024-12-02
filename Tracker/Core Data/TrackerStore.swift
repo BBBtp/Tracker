@@ -64,13 +64,37 @@ final class TrackerStore: NSObject {
             self.context = context
             self.date = date
         }
-    
+    //MARK: Public methods
     func addTracker(to category: TrackerCategoryModel, tracker: TrackerModel) {
-        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "title == %@", category.title)
-        
-        do {
-            let categoryEntity = fetchOrAddCategory(category.title)
+            do {
+                try addTrackerToCoreData(to: category, tracker: tracker)
+            } catch {
+                print("Ошибка при добавлении трекера: \(error)")
+            }
+        }
+    
+    func completionStatus(for indexPath: IndexPath) -> TrackerCompletion {
+            let trackerCD = fetchedResultsController.object(at: indexPath)
+            return createTrackerCompletion(from: trackerCD)
+        }
+    
+    func updateDate(_ newDate: Date,_ searchText: String) {
+        date = newDate
+        fetchedResultsController.fetchRequest.predicate = fetchPredicate(searchText: searchText)
+           try? fetchedResultsController.performFetch()
+   }
+    
+    func changeCompletion(for indexPath: IndexPath, to isCompleted: Bool) {
+            let trackerCoreData = fetchedResultsController.object(at: indexPath)
+            do {
+                try updateCompletionStatus(for: trackerCoreData, to: isCompleted)
+            } catch {
+                print("Ошибка при изменении статуса завершения: \(error)")
+            }
+        }
+    //MARK: Private CoreData methods
+    private func addTrackerToCoreData(to category: TrackerCategoryModel, tracker: TrackerModel) throws {
+            let categoryEntity = try fetchOrAddCategory(category.title)
             let newTracker = TrackerCD(context: context)
             newTracker.id = tracker.id
             newTracker.title = tracker.title
@@ -79,21 +103,16 @@ final class TrackerStore: NSObject {
             newTracker.color = uiColorMarshalling.ColorToString(from: tracker.color)
             newTracker.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(tracker.timeTable)
             newTracker.category = categoryEntity
-           
+
             categoryEntity.addToTrackers(newTracker)
             try context.save()
-        } catch {
-            print("Ошибка при добавлении трекера: \(error)")
         }
-    }
 
-    func fetchOrAddCategory(_ title: String) -> TrackerCategoryCD {
-        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-        fetchRequest.predicate = NSPredicate(format: "title = %@", title)
-        
-        do {
-            let categories = try context.fetch(fetchRequest)
+    private func fetchOrAddCategory(_ title: String) throws -> TrackerCategoryCD {
+            let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "title = %@", title)
             
+            let categories = try context.fetch(fetchRequest)
             if let existingCategory = categories.first {
                 return existingCategory
             } else {
@@ -102,37 +121,35 @@ final class TrackerStore: NSObject {
                 try context.save()
                 return newCategory
             }
-        } catch {
-            print("Ошибка при попытке найти или добавить категорию: \(error)")
-            return TrackerCategoryCD()
         }
-    }
-
-    func completionStatus(for indexPath: IndexPath) -> TrackerCompletion {
-        let trackerCD = fetchedResultsController.object(at: indexPath)
-        let color = uiColorMarshalling.stringToColor(from: trackerCD.color ?? "")
-        let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(trackerCD.timeTable ?? "")
-        
-        let tracker =  TrackerModel(
-            id: trackerCD.id ?? UUID(),
-            title: trackerCD.title ?? "",
-            color: color,
-            emoji: trackerCD.emoji ?? "",
-            timeTable: weekDays,
-            type: trackerCD.type == 1 ? .habit : .irregularEvent
-        )
     
-        let isCompleted = trackerCD.records?.contains { record in
-            guard let trackerRecord = record as? TrackerRecordCD,
-                  let trackerDate = trackerRecord.date else { return false }
-            return Calendar.current.isDate(trackerDate, inSameDayAs: date)
-        } ?? false
-            let trackerCompletion = TrackerCompletion(tracker: tracker,
-                                                      numberOfCompletions: trackerCD.records?.count ?? 0,
-                                                      isCompleted: isCompleted)
-            return trackerCompletion
+    private func createTrackerCompletion(from trackerCD: TrackerCD) -> TrackerCompletion {
+            let color = uiColorMarshalling.stringToColor(from: trackerCD.color ?? "")
+            let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(trackerCD.timeTable ?? "")
+            
+            let tracker = TrackerModel(
+                id: trackerCD.id ?? UUID(),
+                title: trackerCD.title ?? "",
+                color: color,
+                emoji: trackerCD.emoji ?? "",
+                timeTable: weekDays,
+                type: trackerCD.type == 1 ? .habit : .irregularEvent
+            )
+            
+            let isCompleted = trackerCD.records?.contains { record in
+                guard let trackerRecord = record as? TrackerRecordCD,
+                      let trackerDate = trackerRecord.date else { return false }
+                return Calendar.current.isDate(trackerDate, inSameDayAs: date)
+            } ?? false
+            
+            return TrackerCompletion(
+                tracker: tracker,
+                numberOfCompletions: trackerCD.records?.count ?? 0,
+                isCompleted: isCompleted
+            )
         }
-    func fetchPredicate(searchText: String) -> NSPredicate {
+    
+    private func fetchPredicate(searchText: String) -> NSPredicate {
         let weekday = WeekDay.from(date: date)
         let weekdayString = weekday.map { String($0.rawValue) } ?? ""
         
@@ -150,22 +167,15 @@ final class TrackerStore: NSObject {
         return NSCompoundPredicate(orPredicateWithSubpredicates: [titlePredicate, timeTablePredicate])
     }
     
-    func updateDate(_ newDate: Date,_ searchText: String) {
-        date = newDate
-        fetchedResultsController.fetchRequest.predicate = fetchPredicate(searchText: searchText)
-           try? fetchedResultsController.performFetch()
-   }
-       
-    func changeCompletion(for indexPath: IndexPath, to isCompleted: Bool) {
-        let trackerCoreData = fetchedResultsController.object(at: indexPath)
-
-        do{
+    private func updateCompletionStatus(for trackerCoreData: TrackerCD, to isCompleted: Bool) throws {
             let existingRecord = trackerCoreData.records?.first { record in
-                guard let trackerRecord = record as? TrackerRecordCD, let trackerDate = trackerRecord.date else {
+                guard let trackerRecord = record as? TrackerRecordCD,
+                      let trackerDate = trackerRecord.date else {
                     return false
                 }
                 return Calendar.current.isDate(trackerDate, inSameDayAs: date)
             }
+            
             if isCompleted, existingRecord == nil {
                 let trackerRecordCoreData = TrackerRecordCD(context: context)
                 trackerRecordCoreData.date = date
@@ -177,11 +187,6 @@ final class TrackerStore: NSObject {
                 try context.save()
             }
         }
-        catch{
-            print("Ошибка при попытке выполнить трекер: \(error)")
-        }
-    }
-
 }
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
