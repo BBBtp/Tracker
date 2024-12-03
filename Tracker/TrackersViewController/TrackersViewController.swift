@@ -4,7 +4,7 @@ import UIKit
 final class TrackersViewController: UIViewController {
     var collectionView: UICollectionView!
     var currentDate: Date = Date()
-    
+    var category: String = ""
     private let datePicker: UIDatePicker = {
         let picker = UIDatePicker()
         picker.preferredDatePickerStyle = .compact
@@ -74,22 +74,16 @@ final class TrackersViewController: UIViewController {
 }
 //MARK: Create Trackers
 extension TrackersViewController {
-    private func addTracker(to category: TrackerCategoryModel, tracker: TrackerModel) {
-        trackerStore.addTracker(to: category, tracker: tracker)
+    private func addTracker(to category: String, tracker: TrackerModel) {
+        trackerStore.addTracker(category: category, tracker: tracker)
     }
-    
     private func addTracker(tracker: TrackerModel) {
-        addTracker(to: Mocks.defaultCategory, tracker: tracker)
-    }
-    
-    private func addIrregularEvent(tracker: TrackerModel) {
-        addTracker(to: Mocks.irregularCategory, tracker: tracker)
+        addTracker(to: self.category , tracker: tracker)
     }
     
     private func isFutureDate(_ date: Date)-> Bool {
         return date > Date()
     }
-
 }
 
 extension TrackersViewController {
@@ -105,8 +99,9 @@ extension TrackersViewController {
     @objc func showTrackerType() {
         let trackerTypeVC = TrackerTypeViewController()
         trackerTypeVC.delegate = self
-        trackerTypeVC.modalPresentationStyle = .pageSheet
-        present(trackerTypeVC, animated: true)
+        let navigationController = UINavigationController(rootViewController: trackerTypeVC)
+        navigationController.modalPresentationStyle = .formSheet
+        present(navigationController, animated: true)
     }
 }
 
@@ -230,34 +225,6 @@ extension TrackersViewController {
     }
 }
 
-extension TrackersViewController: CreateHabbitDelegate {
-    func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String) {
-        let newTracker = TrackerModel(
-            id: UUID(),
-            title: name,
-            color: color,
-            emoji: emoji,
-            timeTable: days,
-            type: .habit
-        )
-        addTracker(tracker: newTracker)
-        collectionView.reloadData()
-    }
-    
-    func didCreateIrregularEvent(name: String, days: [WeekDay], color: UIColor, emoji: String) {
-        let newTracker = TrackerModel(
-            id: UUID(),
-            title: name,
-            color: color,
-            emoji: emoji,
-            timeTable: days,
-            type: .irregularEvent
-        )
-        addIrregularEvent(tracker: newTracker)
-        collectionView.reloadData()
-    }
-}
-
 extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         let avaliableWidth = collectionView.bounds.width - parameters.paddingWidth
@@ -322,29 +289,7 @@ extension TrackersViewController: UISearchBarDelegate {
     }
 }
 
-extension TrackersViewController: TrackerTypeDelegate {
-    func showCreateHabit(isHabit: Bool) {
-        dismiss(animated: false) { [weak self] in
-            let createHabitVC = CreateHabbitViewController()
-            createHabitVC.delegate = self
-            createHabitVC.createHabbitDelegate = self
-            createHabitVC.isHabitOrRegular = isHabit
-            createHabitVC.modalPresentationStyle = .pageSheet
-            self?.present(createHabitVC, animated: true)
-        }
-    }
-    
-    func showCreateIrregularEvent(isHabit: Bool) {
-        dismiss(animated: false) { [weak self] in
-            let createHabitVC = CreateHabbitViewController()
-            createHabitVC.delegate = self
-            createHabitVC.createHabbitDelegate = self
-            createHabitVC.isHabitOrRegular = isHabit
-            createHabitVC.modalPresentationStyle = .pageSheet
-            self?.present(createHabitVC, animated: true)
-        }
-    }
-}
+
 
 extension TrackersViewController: TrackerStoreDelegate {
     func didUpdate(_ update: TrackerStoreUpdate) {
@@ -364,4 +309,13 @@ extension TrackersViewController: TrackerStoreDelegate {
         }, completion: nil)
         
     }
+}
+
+extension TrackersViewController: TrackerTypeDelegate {
+    func didSelectTrackerType(tracker: TrackerModel, category: String) {
+        self.category = category
+        addTracker(tracker: tracker)
+        collectionView.reloadData()
+    }
+    
 }

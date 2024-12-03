@@ -10,8 +10,8 @@ import Foundation
 import UIKit
 
 protocol CreateHabbitDelegate: AnyObject {
-    func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String)
-    func didCreateIrregularEvent(name: String,days: [WeekDay], color: UIColor,emoji:String)
+    func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String)
+    func didCreateIrregularEvent(name: String,days: [WeekDay], color: UIColor,emoji:String,category: String)
 }
 
 final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
@@ -29,15 +29,16 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     }()
     
     private lazy var scrollView: UIScrollView = {
-            let scrollView = UIScrollView()
-            scrollView.translatesAutoresizingMaskIntoConstraints = false
-            scrollView.showsVerticalScrollIndicator = false
-            return scrollView
-        }()
+        let scrollView = UIScrollView()
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.showsVerticalScrollIndicator = false
+        return scrollView
+    }()
     
     let inputNameCategory = UITextField()
-    weak var delegate: TrackerTypeDelegate?
     weak var createHabbitDelegate: CreateHabbitDelegate?
+    
+    private var category: String = ""
     private var parameters: GeometricParameters
     private var selectedEmojiIndex: IndexPath?
     private var selectedColor: IndexPath?
@@ -70,12 +71,12 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
         super.viewDidLoad()
         view.backgroundColor = .white
         inputNameCategory.delegate = self
+        setupNavigationBar(title: isHabitOrRegular ? "Новая привычка" : "Новое нерегулярное событие")
         setupUI()
     }
 }
 
 extension CreateHabbitViewController {
-    
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
@@ -117,7 +118,7 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
             } else {
                 cell.backgroundColor = .clear
             }
-    
+            
             let emojiLabel = UILabel()
             emojiLabel.text = Constants.emojis[indexPath.item]
             emojiLabel.font = UIFont.systemFont(ofSize: 32)
@@ -134,17 +135,17 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
             guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ColorCollectionViewCell.colorIdentifier, for: indexPath) as? ColorCollectionViewCell else {
                 return UICollectionViewCell()
             }
-                let color = Constants.colors[indexPath.item]
-                cell.configure(with: color)
-
-                if indexPath == selectedColor {
-                    cell.selectCell()
-                } else {
-                    cell.deselectCell()
-                }
-
-                return cell
+            let color = Constants.colors[indexPath.item]
+            cell.configure(with: color)
+            
+            if indexPath == selectedColor {
+                cell.selectCell()
+            } else {
+                cell.deselectCell()
             }
+            
+            return cell
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
@@ -201,14 +202,14 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.frame.width, height: 50) 
+        return CGSize(width: collectionView.frame.width, height: 50)
     }
 }
 extension CreateHabbitViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return isHabitOrRegular ? 2 : 1
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "customCell", for: indexPath) as? CustomTableViewCell else {
             return UITableViewCell()
@@ -221,17 +222,42 @@ extension CreateHabbitViewController: UITableViewDelegate, UITableViewDataSource
         }
         
         cell.backgroundColor = .ypShedule
-        cell.accessoryType = .disclosureIndicator
+        let isLastRow = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
+            cell.configureSeparator(isLastRow: isLastRow)
+            
+            if indexPath.row == 0 {
+                cell.layer.cornerRadius = 16
+                cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+            } else if isLastRow {
+                cell.layer.cornerRadius = 16
+                cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            } else {
+                cell.layer.cornerRadius = 0
+            }
         return cell
+    }
+    
+    private func onReturnCategory(_ category: String){
+        self.category = category
+        if let scheduleCell = self.sheduleTableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? CustomTableViewCell {
+            scheduleCell.subtitleLabel.text = self.category
+            scheduleCell.subtitleLabel.textColor = .gray
+        }
+        sheduleTableView.reloadData()
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 1 {
             let scheduleVC = SheduleViewController()
-            scheduleVC.modalPresentationStyle = .pageSheet
             scheduleVC.delegate = self
-            self.present(scheduleVC, animated: true, completion: nil)
+            navigationController?.pushViewController(scheduleVC, animated: true)
         }
+        else {
+                let viewController = CategoryViewContoller(selectedCategory: self.category) { [weak self] selectedCategory in
+                    self?.onReturnCategory(selectedCategory)
+                }
+            navigationController?.pushViewController(viewController, animated: true)
+            }
         
         tableView.deselectRow(at: indexPath, animated: true)
     }
@@ -271,14 +297,6 @@ extension CreateHabbitViewController {
     }
     
     func setupUI() {
-        let title = UILabel()
-        title.text = isHabitOrRegular ? "Новая привычка" : "Новое нерегулярное событие"
-        title.textColor = .black
-        title.textAlignment = .center
-        title.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        title.translatesAutoresizingMaskIntoConstraints = false
-        title.backgroundColor = .white
-
         inputNameCategory.placeholder = "Введите название трекера"
         inputNameCategory.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         inputNameCategory.backgroundColor = .ypShedule
@@ -286,43 +304,39 @@ extension CreateHabbitViewController {
         inputNameCategory.layer.masksToBounds = true
         inputNameCategory.rightViewMode = .always
         inputNameCategory.addTarget(self, action: #selector(showWarning(_:)), for: .editingChanged)
-
+        inputNameCategory.clearButtonMode = .whileEditing
         let leftIndent = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: inputNameCategory.frame.height))
         inputNameCategory.leftView = leftIndent
         inputNameCategory.leftViewMode = .always
-
-        let rightIndent = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: inputNameCategory.frame.height))
-        inputNameCategory.rightView = rightIndent
-        inputNameCategory.rightViewMode = .always
-
+        
         sheduleTableView.dataSource = self
         sheduleTableView.delegate = self
-        sheduleTableView.backgroundColor = .ypShedule
-        sheduleTableView.separatorStyle = isHabitOrRegular ? .singleLine : .none
+        sheduleTableView.backgroundColor = .white
         sheduleTableView.translatesAutoresizingMaskIntoConstraints = false
         sheduleTableView.isScrollEnabled = false
-
+        
         let stackView = UIStackView(arrangedSubviews: [inputNameCategory, warningLabel, sheduleTableView])
         stackView.axis = .vertical
         stackView.spacing = 24
         stackView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         inputNameCategory.heightAnchor.constraint(equalToConstant: 75).isActive = true
         sheduleTableView.heightAnchor.constraint(equalToConstant: CGFloat(isHabitOrRegular ? (2 * 75) : (1 * 75))).isActive = true
-
+        
         let stackViewButtons = UIStackView()
         stackViewButtons.axis = .horizontal
         stackViewButtons.spacing = 8
         stackViewButtons.distribution = .fillEqually
         stackViewButtons.backgroundColor = .white
         stackViewButtons.translatesAutoresizingMaskIntoConstraints = false
-
+        
         let buttonCreate = createButtonCreate(title: "Cоздать", action: #selector(createButtonTapped))
         let buttonReject = createButtonReject(title: "Отменить", action: #selector(rejectButtonTapped))
-
+        buttonCreate.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
+        buttonReject.addTarget(self, action: #selector(rejectButtonTapped), for: .touchUpInside)
         stackViewButtons.addArrangedSubview(buttonReject)
         stackViewButtons.addArrangedSubview(buttonCreate)
-
+        
         let emojiLayout = UICollectionViewFlowLayout()
         emojiCollectionView = UICollectionView(frame: .zero, collectionViewLayout: emojiLayout)
         emojiCollectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "emojiCell")
@@ -330,7 +344,7 @@ extension CreateHabbitViewController {
         emojiCollectionView.dataSource = self
         emojiCollectionView.delegate = self
         emojiCollectionView.backgroundColor = .clear
-
+        
         let colorLayout = UICollectionViewFlowLayout()
         colorCollectionView = UICollectionView(frame: .zero, collectionViewLayout: colorLayout)
         colorCollectionView.register(ColorCollectionViewCell.self, forCellWithReuseIdentifier: ColorCollectionViewCell.colorIdentifier)
@@ -338,7 +352,7 @@ extension CreateHabbitViewController {
         colorCollectionView.dataSource = self
         colorCollectionView.delegate = self
         colorCollectionView.backgroundColor = .clear
-
+        
         emojiLayout.sectionHeadersPinToVisibleBounds = true
         colorLayout.sectionHeadersPinToVisibleBounds = true
         emojiCollectionView.allowsMultipleSelection = false
@@ -347,36 +361,34 @@ extension CreateHabbitViewController {
         colorCollectionView.isScrollEnabled = false
         emojiCollectionView.translatesAutoresizingMaskIntoConstraints = false
         colorCollectionView.translatesAutoresizingMaskIntoConstraints = false
-
+        
         let stackViewCollections = UIStackView(arrangedSubviews: [emojiCollectionView, colorCollectionView])
         stackViewCollections.spacing = 16
         stackViewCollections.axis = .vertical
         stackViewCollections.translatesAutoresizingMaskIntoConstraints = false
-
+        
         let contentView = UIView()
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
-
+        
         contentView.addSubview(stackView)
         contentView.addSubview(stackViewCollections)
-
-        view.addSubview(title)
+        
+      
         view.addSubview(scrollView)
         view.addSubview(stackViewButtons)
-
+        
         NSLayoutConstraint.activate([
             emojiCollectionView.heightAnchor.constraint(equalToConstant: 230),
             colorCollectionView.heightAnchor.constraint(equalToConstant: 230),
-
+            
             stackView.bottomAnchor.constraint(equalTo: stackViewCollections.topAnchor, constant: -20),
             stackViewCollections.bottomAnchor.constraint(equalTo: stackViewButtons.topAnchor, constant: -20),
-
-            title.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            title.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
+            
+           
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.topAnchor.constraint(equalTo: title.bottomAnchor,constant: 38),
+            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
@@ -385,7 +397,7 @@ extension CreateHabbitViewController {
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             contentView.heightAnchor.constraint(greaterThanOrEqualTo: scrollView.heightAnchor, constant: 1),
-
+            
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
@@ -400,61 +412,13 @@ extension CreateHabbitViewController {
     }
     
     func createButtonCreate(title: String, action: Selector) -> UIButton {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .gray
-        button.layer.cornerRadius = 16
-        button.setTitle(title, for: .normal)
-        button.addTarget(self, action: action, for: .touchUpInside)
-        
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        
-        button.addTarget(self, action: #selector(buttonPressedCreate(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonReleasedCreate(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        
-        button.heightAnchor.constraint(equalToConstant: 60).isActive = true
-        
+        let button = CustomButton(type: .create, title: title)
         return button
     }
     
     func createButtonReject(title: String, action: Selector) -> UIButton {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .white
-        button.setTitleColor(.red, for: .normal)
-        button.layer.borderColor = UIColor.red.cgColor
-        button.layer.borderWidth = 1
-        button.layer.cornerRadius = 16
-        button.setTitle(title, for: .normal)
-        button.addTarget(self, action: action, for: .touchUpInside)
-        
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        
-        button.addTarget(self, action: #selector(buttonPressed(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonReleased(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        
-        button.heightAnchor.constraint(equalToConstant: 60).isActive = true
-        
+        let button = CustomButton(type: .reject, title: title)
         return button
-    }
-    
-    @objc private func buttonPressed(_ sender: UIButton) {
-        sender.backgroundColor = .red
-        sender.setTitleColor(.white, for: .normal)
-    }
-    
-    @objc private func buttonReleased(_ sender: UIButton) {
-        sender.backgroundColor = .white
-        sender.setTitleColor(.red, for: .normal)
-    }
-    
-    @objc private func buttonPressedCreate(_ sender: UIButton) {
-        sender.backgroundColor = .darkGray
-        
-    }
-    
-    @objc private func buttonReleasedCreate(_ sender: UIButton) {
-        sender.backgroundColor = .gray
     }
     
     @objc private func createButtonTapped() {
@@ -469,7 +433,8 @@ extension CreateHabbitViewController {
                     name: name,
                     days: selectedWeekDays,
                     color: color,
-                    emoji: emoji
+                    emoji: emoji,
+                    category: self.category
                 )
             } else {
                 let allDays: [WeekDay] = []
@@ -477,26 +442,26 @@ extension CreateHabbitViewController {
                     name: name,
                     days: allDays,
                     color: color,
-                    emoji: emoji
+                    emoji: emoji,
+                    category: self.category
                 )
             }
         } else {
-            // Обработка случая, когда selectedColor или selectedEmojiIndex равны nil
             print("Ошибка: selectedColor или selectedEmojiIndex равен nil")
         }
-
+        
         dismiss(animated: true)
     }
     
     @objc private func rejectButtonTapped(){
-        dismiss(animated: true)
+        print("createButtonTapped called") 
+        navigationController?.popViewController(animated: true)
     }
 }
 
 extension CreateHabbitViewController: SheduleDelegate {
     func didSelectDays(_ days: [WeekDay]) {
         selectedWeekDays = days
-        print(selectedWeekDays)
         updateTableCell()
     }
 }

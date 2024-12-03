@@ -6,8 +6,7 @@
 //
 
 protocol TrackerTypeDelegate: AnyObject {
-    func showCreateHabit(isHabit: Bool)
-    func showCreateIrregularEvent(isHabit: Bool)
+   func didSelectTrackerType(tracker: TrackerModel, category: String)
 }
 
 

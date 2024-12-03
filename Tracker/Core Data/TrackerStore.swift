@@ -65,13 +65,13 @@ final class TrackerStore: NSObject {
             self.date = date
         }
     //MARK: Public methods
-    func addTracker(to category: TrackerCategoryModel, tracker: TrackerModel) {
-            do {
-                try addTrackerToCoreData(to: category, tracker: tracker)
-            } catch {
-                print("Ошибка при добавлении трекера: \(error)")
-            }
+    func addTracker(category: String, tracker: TrackerModel) {
+        do {
+            try addTrackerToCoreData(to: category, tracker: tracker)
+        } catch {
+            print("Ошибка при добавлении трекера: \(error)")
         }
+    }
     
     func completionStatus(for indexPath: IndexPath) -> TrackerCompletion {
             let trackerCD = fetchedResultsController.object(at: indexPath)
@@ -93,36 +93,37 @@ final class TrackerStore: NSObject {
             }
         }
     //MARK: Private CoreData methods
-    private func addTrackerToCoreData(to category: TrackerCategoryModel, tracker: TrackerModel) throws {
-            let categoryEntity = try fetchOrAddCategory(category.title)
-            let newTracker = TrackerCD(context: context)
-            newTracker.id = tracker.id
-            newTracker.title = tracker.title
-            newTracker.type = tracker.type == .habit ? 1 : 2
-            newTracker.emoji = tracker.emoji
-            newTracker.color = uiColorMarshalling.ColorToString(from: tracker.color)
-            newTracker.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(tracker.timeTable)
-            newTracker.category = categoryEntity
-
-            categoryEntity.addToTrackers(newTracker)
-            try context.save()
-        }
-
-    private func fetchOrAddCategory(_ title: String) throws -> TrackerCategoryCD {
-            let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-            fetchRequest.predicate = NSPredicate(format: "title = %@", title)
-            
-            let categories = try context.fetch(fetchRequest)
-            if let existingCategory = categories.first {
-                return existingCategory
-            } else {
-                let newCategory = TrackerCategoryCD(context: context)
-                newCategory.title = title
-                try context.save()
-                return newCategory
-            }
-        }
+    private func addTrackerToCoreData(to category: String, tracker: TrackerModel) throws {
+        let categoryEntity = try fetchOrAddCategory(category)
+        let newTracker = TrackerCD(context: context)
+        newTracker.id = tracker.id
+        newTracker.title = tracker.title
+        newTracker.type = tracker.type == .habit ? 1 : 2
+        newTracker.emoji = tracker.emoji
+        newTracker.color = uiColorMarshalling.ColorToString(from: tracker.color)
+        newTracker.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(tracker.timeTable)
+        newTracker.category = categoryEntity
+        
+        categoryEntity.addToTrackers(newTracker)
+        try context.save()
+    }
     
+    private func fetchOrAddCategory(_ title: String) throws -> TrackerCategoryCD {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "title = %@", title)
+        
+        let categories = try context.fetch(fetchRequest)
+        if let existingCategory = categories.first {
+            return existingCategory
+        } else {
+            let newCategory = TrackerCategoryCD(context: context)
+            newCategory.title = title
+            try context.save()
+            return newCategory
+        }
+    }
+    
+
     private func createTrackerCompletion(from trackerCD: TrackerCD) -> TrackerCompletion {
             let color = uiColorMarshalling.stringToColor(from: trackerCD.color ?? "")
             let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(trackerCD.timeTable ?? "")

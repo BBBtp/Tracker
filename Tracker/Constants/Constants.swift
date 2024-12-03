@@ -20,4 +20,6 @@ enum Constants {
     static let allDays: Set<WeekDay> = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
     static let weekDays: Set<WeekDay> = [.monday, .tuesday, .wednesday, .thursday, .friday]
     static let weekend: Set<WeekDay> = [.saturday, .sunday]
+    
+    static let stateKey: String = "hasSeenOnboarding"
 }

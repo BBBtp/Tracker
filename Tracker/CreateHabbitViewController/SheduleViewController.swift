@@ -17,10 +17,10 @@ final class SheduleViewController: UIViewController, UITableViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
+        setupNavigationBar(title: "Расписание")
         setupUI()
     }
 }
-
 
 extension SheduleViewController: UITabBarDelegate, UITableViewDataSource {
     
@@ -30,7 +30,6 @@ extension SheduleViewController: UITabBarDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell", for: indexPath)
-        
         let day = WeekDay(rawValue: indexPath.row + 1)?.fullText
         cell.textLabel?.text = day
         
@@ -43,46 +42,51 @@ extension SheduleViewController: UITabBarDelegate, UITableViewDataSource {
         cell.accessoryView = daySwitch
         cell.selectionStyle = .none
         cell.backgroundColor = .ypShedule
+        
+        let isLastRow = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
+
+        if indexPath.row == 0 {
+            cell.layer.cornerRadius = 16
+            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        } else if isLastRow {
+            cell.layer.cornerRadius = 16
+            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        } else {
+            cell.layer.cornerRadius = 0
+            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        }
         return cell
     }
+
 }
 
 extension SheduleViewController {
     
     private func setupUI(){
-        let title = UILabel()
-        title.text = "Расписание"
-        title.textColor = .black
-        title.textAlignment = .center
-        title.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        title.translatesAutoresizingMaskIntoConstraints = false
-        
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "DayCell")
-        tableView.separatorStyle = .none
         tableView.rowHeight = 75
         tableView.estimatedRowHeight = 75
         tableView.layer.cornerRadius = 16
         tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = false
-        tableView.separatorStyle = .singleLine
-        tableView.backgroundColor = .ypShedule
+        tableView.backgroundColor = .white
         tableView.translatesAutoresizingMaskIntoConstraints = false
         let stackView = UIStackView()
         stackView.axis = .vertical
         stackView.spacing = 47
         stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        view.addSubview(title)
         view.addSubview(stackView)
         stackView.addArrangedSubview(tableView)
         
         NSLayoutConstraint.activate([
-            title.topAnchor.constraint(equalTo: view.topAnchor, constant: 20),
-            title.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            stackView.topAnchor.constraint(equalTo: title.bottomAnchor, constant: 39),
+            
+            stackView.topAnchor.constraint(equalTo: view.topAnchor, constant: 16),
             stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             stackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
@@ -94,37 +98,15 @@ extension SheduleViewController {
         stackView.addArrangedSubview(buttonCreate)
     }
     private func createButton(title: String, action: Selector) -> UIButton {
-        
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .black
-        button.layer.cornerRadius = 16
-        button.setTitle(title, for: .normal)
+        let button = CustomButton(type: .create, title: title)
         button.addTarget(self, action: action, for: .touchUpInside)
-        
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        
-        button.addTarget(self, action: #selector(buttonPressed(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonReleased(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        
-        
-        button.heightAnchor.constraint(equalToConstant: 60).isActive = true
-        
         return button
     }
-    
-    @objc private func buttonPressed(_ sender: UIButton) {
-        sender.backgroundColor = .darkGray
-    }
-    
-    @objc private func buttonReleased(_ sender: UIButton) {
-        sender.backgroundColor = .black
-    }
-    
+
     @objc private func createButtonTapped() {
         let selectedWeekDays = selectedDays.compactMap { WeekDay(rawValue: $0.key + 1) }
         delegate?.didSelectDays(selectedWeekDays)
-        dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
     }
     
     @objc func switchChanged(_ sender: UISwitch) {

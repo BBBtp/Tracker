@@ -3,12 +3,13 @@ import UIKit
 
 
 final class TrackerTypeViewController: UIViewController {
+    
     weak var delegate: TrackerTypeDelegate?
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setLabel()
+        setupNavigationBar(title: "Создание трекера")
         setupUI()
     }
     
@@ -33,51 +34,51 @@ final class TrackerTypeViewController: UIViewController {
     }
     
     @objc private func habitButtonTaped() {
-        delegate?.showCreateHabit(isHabit: true)
-        
+        let viewController = CreateHabbitViewController()
+        viewController.isHabitOrRegular = true
+        viewController.createHabbitDelegate = self
+        navigationController?.pushViewController(viewController, animated: true)
     }
     
     @objc private func irregularEventButtonTaped() {
-        delegate?.showCreateIrregularEvent(isHabit: false)
-    }
-    
-    private func setLabel() {
-        let label = UILabel()
-        label.text = "Создание трекера"
-        label.textColor = .black
-        label.textAlignment = .center
-        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(label)
-        NSLayoutConstraint.activate([
-            label.topAnchor.constraint(equalTo: view.topAnchor, constant: 27),
-            label.centerXAnchor.constraint(equalTo: view.centerXAnchor)
-        ])
+        let viewController = CreateHabbitViewController()
+        viewController.isHabitOrRegular = false
+        viewController.createHabbitDelegate = self
+        navigationController?.pushViewController(viewController, animated: true)
     }
     
     private func createButton(title: String, action: Selector) -> UIButton {
-        let button = UIButton()
-        button.translatesAutoresizingMaskIntoConstraints = false
-        button.backgroundColor = .black
-        button.layer.cornerRadius = 16
-        button.setTitle(title, for: .normal)
+        let button = CustomButton(type: .create, title: title)
         button.addTarget(self, action: action, for: .touchUpInside)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-        button.addTarget(self, action: #selector(buttonPressed(_:)), for: .touchDown)
-        button.addTarget(self, action: #selector(buttonReleased(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
-        button.heightAnchor.constraint(equalToConstant: 60).isActive = true
-        
         return button
     }
-    
-    @objc private func buttonPressed(_ sender: UIButton) {
-        sender.backgroundColor = .darkGray
+}
+
+extension TrackerTypeViewController: CreateHabbitDelegate {
+    func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        let newTracker = TrackerModel(
+            id: UUID(),
+            title: name,
+            color: color,
+            emoji: emoji,
+            timeTable: days,
+            type: .habit
+        )
+        delegate?.didSelectTrackerType(tracker: newTracker, category: category)
     }
     
-    @objc private func buttonReleased(_ sender: UIButton) {
-        sender.backgroundColor = .black
+    func didCreateIrregularEvent(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        let newTracker = TrackerModel(
+            id: UUID(),
+            title: name,
+            color: color,
+            emoji: emoji,
+            timeTable: days,
+            type: .irregularEvent
+        )
+        
+        delegate?.didSelectTrackerType(tracker: newTracker, category: category)
     }
-    
 }
 
 

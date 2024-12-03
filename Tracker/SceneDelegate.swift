@@ -9,17 +9,25 @@ import UIKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    
+    private var stateStorage = StateStorage()
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession,
                options connectionOptions: UIScene.ConnectionOptions
     ) {
         guard let windowScene = (scene as? UIWindowScene) else { return }
+        
         window = UIWindow(windowScene: windowScene)
-        window?.rootViewController = setupTabBarController()
+        if shouldShowOnboarding() {
+            window?.rootViewController = OnboardingViewController()
+        } else {
+            window?.rootViewController = setupTabBarController()
+        }
         window?.makeKeyAndVisible()
     }
     
-    private func setupTabBarController() -> UITabBarController {
+    private func shouldShowOnboarding() -> Bool {
+        return !stateStorage.viewState
+        }
+    func setupTabBarController() -> UITabBarController {
         let tabBarController = UITabBarController()
         let trackerViewController = TrackersViewController()
         trackerViewController.tabBarItem = UITabBarItem(title: "Трекеры", image: UIImage(named: "trackers"), selectedImage: nil)

@@ -7,6 +7,11 @@
 import Foundation
 import UIKit
 
+import UIKit
+
+import Foundation
+import UIKit
+
 final class CustomTableViewCell: UITableViewCell {
     
     let titleLabel: UILabel = {
@@ -24,6 +29,14 @@ final class CustomTableViewCell: UITableViewCell {
         return label
     }()
     
+    private let arrowImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "chevron.right")
+        imageView.tintColor = .gray
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         setupViews()
@@ -37,6 +50,7 @@ final class CustomTableViewCell: UITableViewCell {
     private func setupViews() {
         contentView.addSubview(titleLabel)
         contentView.addSubview(subtitleLabel)
+        contentView.addSubview(arrowImageView)
         
         NSLayoutConstraint.activate([
             titleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
@@ -44,7 +58,19 @@ final class CustomTableViewCell: UITableViewCell {
             
             subtitleLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 2),
-            subtitleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -14)
+            subtitleLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -14),
+            
+            arrowImageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            arrowImageView.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
+            
         ])
+    }
+    
+    func configureSeparator(isLastRow: Bool) {
+        if isLastRow {
+            separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
+        } else {
+            separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        }
     }
 }

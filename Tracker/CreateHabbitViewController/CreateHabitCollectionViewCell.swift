@@ -10,6 +10,4 @@ import UIKit
 
 final class CreateHabitCollectionViewCell: UICollectionViewCell {
     static let cellIdentifier = "CreateHabitCell"
-    
-    
 }
