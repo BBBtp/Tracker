@@ -44,7 +44,7 @@ final class TrackerCategoryStore: NSObject {
         self.context = context
         super.init()
     }
-    //MARK: public methods
+//MARK: - public methods
     func addCategory(title: String) {
         do{
             try addCategoryToCoreData(with: title)
@@ -54,12 +54,45 @@ final class TrackerCategoryStore: NSObject {
             print("\(error.localizedDescription)")
         }
     }
-    //MARK: private methods
+    
+    func fetchOrCreatePinnedCategory() -> TrackerCategoryCD {
+        let request = NSFetchRequest<TrackerCategoryCD>(entityName: "TrackerCategoryCD")
+        request.predicate = NSPredicate(format: "isSelected == %@", NSNumber(value: true))
+
+        do {
+            let result = try context.fetch(request)
+            if let firstCategory = result.first {
+                return firstCategory
+            } else {
+                return addCategorySelected("Закрепленные", isPinned: true)
+            }
+        } catch {
+            print("Ошибка при выполнении запроса: \(error.localizedDescription)")
+            return addCategorySelected("Закрепленные", isPinned: true)
+        }
+    }
+
+//MARK: - private methods
+    private func addCategorySelected(_ name: String, isPinned: Bool) -> TrackerCategoryCD {
+        let category = TrackerCategoryCD(context: context)
+        category.title = name
+        category.isSelected = isPinned
+
+        do {
+            try context.save()
+        } catch {
+            print("Ошибка при сохранении контекста: \(error.localizedDescription)")
+        }
+
+        return category
+    }
+
     private func addCategoryToCoreData(with title: String) throws {
         let newCategory = TrackerCategoryCD(context: context)
         newCategory.title = title
         try context.save()
     }
+    
     
     func categoryName(at indexPath: IndexPath) -> String? {
         let categoryData = fetchedResultsController.object(at: indexPath)

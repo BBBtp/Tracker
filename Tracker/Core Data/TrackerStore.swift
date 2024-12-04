@@ -21,6 +21,7 @@ struct TrackerCompletion {
     let tracker: TrackerModel
     let numberOfCompletions: Int
     let isCompleted: Bool
+    let isPinned: Bool
 }
 
 protocol TrackerStoreDelegate: AnyObject {
@@ -64,12 +65,44 @@ final class TrackerStore: NSObject {
             self.context = context
             self.date = date
         }
-    //MARK: Public methods
+//MARK: - Public methods
     func addTracker(category: String, tracker: TrackerModel) {
         do {
             try addTrackerToCoreData(to: category, tracker: tracker)
         } catch {
             print("Ошибка при добавлении трекера: \(error)")
+        }
+    }
+    
+    func updateTracker(in category: String, updatedTracker: TrackerModel) {
+        do{
+            try updateTrackerInCoreData(in: category, updatedTracker: updatedTracker)
+        } catch {
+            print("Ошибка при изменении трекера: \(error)")
+        }
+    }
+    
+    func deleteTracker(at indexPath: IndexPath) {
+        do{
+            try deleteTrackerFromCoreData(at: indexPath)
+        } catch {
+            print("Ошибка при удалении трекера: \(error)")
+        }
+    }
+
+    public func pinTracker(at indexPath: IndexPath) {
+        do {
+            try pinTrackerToCoreData(at: indexPath)
+        } catch {
+            print("Ошибка при закреплении трекера: \(error)")
+        }
+    }
+
+    public func unpinTracker(at indexPath: IndexPath) {
+        do {
+            try unpinTrackerFromCoreData(at: indexPath)
+        } catch {
+            print("Ошибка при откреплении трекера: \(error)")
         }
     }
     
@@ -92,7 +125,18 @@ final class TrackerStore: NSObject {
                 print("Ошибка при изменении статуса завершения: \(error)")
             }
         }
-    //MARK: Private CoreData methods
+    func trackerType(at indexPath: IndexPath) -> Bool {
+        let trackerData = fetchedResultsController.object(at: indexPath)
+        return trackerData.type == 1 ? true : false
+    }
+    
+    func categoryName(for indexPath: IndexPath) -> String {
+        let trackerCoreData = fetchedResultsController.object(at: indexPath)
+        return trackerCoreData.category?.title ?? ""
+    }
+    
+    
+//MARK: - Private CoreData methods
     private func addTrackerToCoreData(to category: String, tracker: TrackerModel) throws {
         let categoryEntity = try fetchOrAddCategory(category)
         let newTracker = TrackerCD(context: context)
@@ -106,6 +150,62 @@ final class TrackerStore: NSObject {
         
         categoryEntity.addToTrackers(newTracker)
         try context.save()
+    }
+    private func updateTrackerInCoreData(in category: String, updatedTracker: TrackerModel) throws {
+        
+            let categoryEntity = try fetchOrAddCategory(category)
+        guard let trackerCD = fetchTrackerByID(updatedTracker.id)
+        else {
+                throw NSError(domain: "TrackerStore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Tracker not found in the specified category."])
+            }
+
+            trackerCD.title = updatedTracker.title
+            trackerCD.type = updatedTracker.type == .habit ? 1 : 2
+            trackerCD.emoji = updatedTracker.emoji
+            trackerCD.color = uiColorMarshalling.ColorToString(from: updatedTracker.color)
+            trackerCD.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(updatedTracker.timeTable)
+            trackerCD.category = categoryEntity
+            
+            categoryEntity.addToTrackers(trackerCD)
+            try context.save()
+        }
+    
+    private func pinTrackerToCoreData(at indexPath: IndexPath) throws {
+        let trackerCoreData = fetchedResultsController.object(at: indexPath)
+        
+        guard let category = trackerCoreData.category, !category.isSelected else { return }
+        
+        let pinnedCategory = TrackerCategoryStore().fetchOrCreatePinnedCategory()
+        
+        trackerCoreData.categoryBeforePin = trackerCoreData.category
+        trackerCoreData.category = pinnedCategory
+        
+        try context.save()
+    }
+
+   
+    private func unpinTrackerFromCoreData(at indexPath: IndexPath) throws {
+        let trackerCoreData = fetchedResultsController.object(at: indexPath)
+        
+        guard let _ = trackerCoreData.categoryBeforePin else { return }
+        
+        trackerCoreData.category = trackerCoreData.categoryBeforePin
+        trackerCoreData.categoryBeforePin = nil
+        
+        try context.save()
+    }
+    
+    private func deleteTrackerFromCoreData(at indexPath: IndexPath) throws {
+        let trackerData = fetchedResultsController.object(at: indexPath)
+        context.delete(trackerData)
+        try context.save()
+    }
+    private func fetchTrackerByID(_ id: UUID) -> TrackerCD? {
+        let fetchRequest: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        fetchRequest.fetchLimit = 1
+        
+        return try? context.fetch(fetchRequest).first
     }
     
     private func fetchOrAddCategory(_ title: String) throws -> TrackerCategoryCD {
@@ -146,7 +246,8 @@ final class TrackerStore: NSObject {
             return TrackerCompletion(
                 tracker: tracker,
                 numberOfCompletions: trackerCD.records?.count ?? 0,
-                isCompleted: isCompleted
+                isCompleted: isCompleted,
+                isPinned: trackerCD.category?.isSelected ?? false
             )
         }
     

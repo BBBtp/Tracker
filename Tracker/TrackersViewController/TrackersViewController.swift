@@ -79,6 +79,15 @@ extension TrackersViewController {
     }
     private func addTracker(tracker: TrackerModel) {
         addTracker(to: self.category , tracker: tracker)
+        setupPlaceholder()
+    }
+    
+    private func updateTracker(tracker: TrackerModel) {
+        updateTracker(to: self.category, tracker: tracker)
+    }
+    
+    private func updateTracker(to category: String, tracker: TrackerModel) {
+        trackerStore.updateTracker(in: category, updatedTracker: tracker)
     }
     
     private func isFutureDate(_ date: Date)-> Bool {
@@ -106,7 +115,7 @@ extension TrackersViewController {
 }
 
 extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDelegate {
-   
+    
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return trackerStore.numberOfSections
     }
@@ -124,16 +133,37 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
         ) as? TrackersCollectionViewCell else {
             return UICollectionViewCell()
         }
-
+        
         let trackerCompletion = trackerStore.completionStatus(for: indexPath)
         cell.configure(
             with: trackerCompletion.tracker,
             isCompletedToday: trackerCompletion.isCompleted,
             completedDays: trackerCompletion.numberOfCompletions,
-            indexPath: indexPath
+            indexPath: indexPath,
+            isPinned: trackerCompletion.isPinned
         )
         cell.delegate = self
         return cell
+    }
+    
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemAt indexPath: IndexPath,
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        
+        
+        guard let cell = collectionView.cellForItem(at: indexPath) as? TrackersCollectionViewCell,
+              cell.coloredRectangleView.frame.contains(cell.convert(point, from: collectionView)) else { return nil }
+        return UIContextMenuConfiguration(identifier: indexPath as NSCopying, actionProvider: { [weak self] actions in
+            
+            var menuItems: [UIAction] = []
+            menuItems.append((self?.createPinAction(for: indexPath, isPinned: cell.isPinned))!)
+            menuItems.append((self?.createEditAction(for: indexPath))!)
+            menuItems.append((self?.createDeleteAction(for: indexPath))!)
+            
+            return UIMenu(children: menuItems)
+        })
     }
 }
 
@@ -317,5 +347,123 @@ extension TrackersViewController: TrackerTypeDelegate {
         addTracker(tracker: tracker)
         collectionView.reloadData()
     }
+    
+}
+
+extension TrackersViewController {
+    private func createEditAction(for indexPath: IndexPath) -> UIAction {
+        let title = NSLocalizedString("contextMenu.edit.title", comment: "Edit item")
+        return UIAction(title: title) { [weak self] _ in
+            guard let self = self else { return }
+            
+            let viewController = CreateHabbitViewController(isNew: false, isHabitOrRegular: trackerStore.trackerType(at: indexPath))
+            
+            let completion = self.trackerStore.completionStatus(for: indexPath)
+            viewController.trackerName = completion.tracker.title
+            viewController.numberOfCompletions = completion.numberOfCompletions
+            viewController.trackerColor = completion.tracker.color
+            viewController.trackerEmoji = completion.tracker.emoji
+            viewController.id = completion.tracker.id
+            viewController.selectedWeekDays = completion.tracker.timeTable
+            viewController.category = self.trackerStore.categoryName(for: indexPath)
+            viewController.createHabbitDelegate = self
+            let navigationController = UINavigationController(rootViewController: viewController)
+            navigationController.modalPresentationStyle = .formSheet
+            self.present(navigationController, animated: true)
+        }
+    }
+    
+    private func createDeleteAction(for indexPath: IndexPath) -> UIAction {
+        let title = NSLocalizedString("contextMenu.delete.title", comment: "Delete item")
+        return UIAction(title: title, attributes: .destructive) { [weak self] action in
+            guard let self = self else { return }
+            
+            let actionSheetController = UIAlertController(
+                title: NSLocalizedString("deleteConfirmation.title",
+                                         comment: "Are you sure you want to delete this tracker?"),
+                message: nil,
+                preferredStyle: .actionSheet
+            )
+            
+            let deleteAction = UIAlertAction(
+                title: NSLocalizedString("deleteButton.title",
+                                         comment: "Delete button title"),
+                style: .destructive
+            ) { [weak self] _ in
+                self?.trackerStore.deleteTracker(at: indexPath)
+                self?.collectionView.reloadData()
+                self?.setupPlaceholder()
+            }
+            
+            let cancelAction = UIAlertAction(
+                title: NSLocalizedString("cancelButton.title",
+                                         comment: "Cancel button title"),
+                style: .cancel,
+                handler: nil
+            )
+            
+            actionSheetController.addAction(deleteAction)
+            actionSheetController.addAction(cancelAction)
+            
+            actionSheetController.preferredAction = cancelAction
+            
+            self.present(actionSheetController, animated: true, completion: nil)
+        }
+    }
+    
+    private func createPinAction(for indexPath: IndexPath, isPinned: Bool) -> UIAction {
+        let title = isPinned ? NSLocalizedString("contextMenu.unpin.title", comment: "Unpin item") :
+        NSLocalizedString("contextMenu.pin.title", comment: "Pin item")
+        
+        return UIAction(title: title) { [weak self] action in
+            guard let self = self else { return }
+            if isPinned {
+                self.trackerStore.unpinTracker(at: indexPath)
+                self.collectionView.reloadData()
+            } else {
+                self.trackerStore.pinTracker(at: indexPath)
+                self.collectionView.reloadData()
+            }
+        }
+    }
+}
+
+extension TrackersViewController: CreateHabbitDelegate {
+    func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        //
+    }
+    
+    func didCreateIrregularEvent(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        //
+    }
+    
+    func didUpdateHabbit(id: UUID,name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        let newTracker = TrackerModel(
+            id: id,
+            title: name,
+            color: color,
+            emoji: emoji,
+            timeTable: days,
+            type: .habit
+        )
+        self.category = category
+        updateTracker(tracker: newTracker)
+        collectionView.reloadData()
+    }
+    
+    func didUpdateIrregularEvent(id:UUID,name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        let newTracker = TrackerModel(
+            id: id,
+            title: name,
+            color: color,
+            emoji: emoji,
+            timeTable: days,
+            type: .irregularEvent
+        )
+        self.category = category
+        updateTracker(tracker: newTracker)
+        collectionView.reloadData()
+    }
+    
     
 }

@@ -1,0 +1,36 @@
+/*
+  Localizable.strings
+  Tracker
+
+  Created by Богдан Топорин on 04.12.2024.
+  
+*/
+
+emptyState.title = "What will we track?";
+createTracker.mainTitle = "Creating a tracker";
+createTracker.mainTitle.habit = "Habit";
+createTracker.mainTitle.irregular = "Irregular event";
+createTracker.newHabit = "New habit";
+createTracker.newIrregular = "New irregular event";
+createTracker.category = "Category";
+createTracker.shedule = "Schedule";
+createTracker.inputPlaceholder = "Enter tracker name";
+createTracker.color = "Color";
+createTracker.emoji = "Emoji";
+createTracker.create = "Create";
+createTracker.reject = "Cancel";
+createTracker.category.placeholder = "Habits and events can be grouped by meaning";
+createTracker.category.createCategory = "Add category";
+createTracker.category.createCategory.complete = "Done";
+createTracker.shedule.monday = "Monday";
+createTracker.shedule.tuesday = "Tuesday";
+createTracker.shedule.wednesday = "Wednesday";
+createTracker.shedule.thursday = "Thursday";
+createTracker.shedule.friday = "Friday";
+createTracker.shedule.saturday = "Saturday";
+createTracker.shedule.sunday = "Sunday";
+createTracker.shedule.weekday = "Weekdays";
+createTracker.shedule.weekend = "Weekends";
+createTracker.shedule.all = "Every day";
+trackers = "Trackers";
+statistic = "Statistics";

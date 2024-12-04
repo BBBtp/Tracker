@@ -12,6 +12,8 @@ import UIKit
 protocol CreateHabbitDelegate: AnyObject {
     func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String)
     func didCreateIrregularEvent(name: String,days: [WeekDay], color: UIColor,emoji:String,category: String)
+    func didUpdateHabbit(id: UUID,name: String, days: [WeekDay], color: UIColor, emoji: String, category: String)
+    func didUpdateIrregularEvent(id: UUID,name: String, days: [WeekDay], color: UIColor, emoji: String, category: String)
 }
 
 final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
@@ -38,10 +40,9 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     let inputNameCategory = UITextField()
     weak var createHabbitDelegate: CreateHabbitDelegate?
     
-    private var category: String = ""
+    
     private var parameters: GeometricParameters
-    private var selectedEmojiIndex: IndexPath?
-    private var selectedColor: IndexPath?
+    
     private lazy var warningLabel: UILabel =  {
         let label = UILabel()
         label.text = "Ограничение 38 символов"
@@ -53,12 +54,21 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     }()
     private var emojiCollectionView: UICollectionView!
     private var colorCollectionView: UICollectionView!
-    
-    private var selectedWeekDays: [WeekDay] = []
-    
+    private var isNew: Bool
+    var numberOfCompletions: Int = 0
+    var selectedWeekDays: [WeekDay] = []
+    var trackerName: String = ""
     var isHabitOrRegular = false
+    var category: String = ""
+    var trackerColor =  UIColor.clear
+    var trackerEmoji: String = ""
+    var id = UUID()
+    var selectedEmojiIndex: IndexPath?
+    var selectedColor: IndexPath?
     
-    init() {
+    init(isNew: Bool,isHabitOrRegular: Bool) {
+        self.isNew = isNew
+        self.isHabitOrRegular = isHabitOrRegular
         self.parameters = GeometricParameters(cellCount: 3, leftInsets: 16, rightInsets: 16, cellSpacing: 1)
         super.init(nibName: nil, bundle: nil)
     }
@@ -73,7 +83,41 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
         inputNameCategory.delegate = self
         setupNavigationBar(title: isHabitOrRegular ? "Новая привычка" : "Новое нерегулярное событие")
         setupUI()
+        if !isNew{
+            setColor(trackerColor)
+            setEmoji(trackerEmoji)
+            inputNameCategory.text = trackerName
+        }
+        
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if !isNew{
+            onReturnCategoryUpdate()
+            updateTableCell()
+        }
+        
+    }
+    private func setColor(_ color: UIColor) {
+        // Поиск индекса переданного цвета в массиве Constants.colors
+        if let index = Constants.colors.firstIndex(where: { $0.isEqualTo(color) }) {
+            // Создаем IndexPath для соответствующего элемента
+            let indexPath = IndexPath(item: index, section: 0)
+            // Устанавливаем выбранный цвет
+            selectedColor = indexPath
+        }
+    }
+    private func setEmoji(_ emoji: String) {
+        // Поиск индекса переданного эмодзи в массиве Constants.emojis
+        if let index = Constants.emojis.firstIndex(of: emoji) {
+            // Создаем IndexPath для соответствующего элемента
+            let indexPath = IndexPath(item: index, section: 0)
+            // Устанавливаем выбранный эмодзи
+            selectedEmojiIndex = indexPath
+        }
+    }
+    
 }
 
 extension CreateHabbitViewController {
@@ -245,6 +289,13 @@ extension CreateHabbitViewController: UITableViewDelegate, UITableViewDataSource
         }
         sheduleTableView.reloadData()
     }
+    private func onReturnCategoryUpdate(){
+        if let scheduleCell = self.sheduleTableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? CustomTableViewCell {
+            scheduleCell.subtitleLabel.text = self.category
+            scheduleCell.subtitleLabel.textColor = .gray
+        }
+        sheduleTableView.reloadData()
+    }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.row == 1 {
@@ -297,6 +348,7 @@ extension CreateHabbitViewController {
     }
     
     func setupUI() {
+    
         inputNameCategory.placeholder = "Введите название трекера"
         inputNameCategory.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         inputNameCategory.backgroundColor = .ypShedule
@@ -424,27 +476,53 @@ extension CreateHabbitViewController {
     @objc private func createButtonTapped() {
         guard let name = inputNameCategory.text, !name.isEmpty else { return }
         
+        // Проверка наличия выбранного цвета и эмодзи
         if let selectedColor = selectedColor, let selectedEmojiIndex = selectedEmojiIndex {
             let color = Constants.colors[selectedColor.item]
             let emoji = Constants.emojis[selectedEmojiIndex.item]
             
-            if isHabitOrRegular {
-                createHabbitDelegate?.didCreateHabbit(
-                    name: name,
-                    days: selectedWeekDays,
-                    color: color,
-                    emoji: emoji,
-                    category: self.category
-                )
+            if !isNew {
+                // Логика для обновления трекера
+                if isHabitOrRegular {
+                    createHabbitDelegate?.didUpdateHabbit(
+                        id: self.id,
+                        name: name,
+                        days: selectedWeekDays,
+                        color: color,
+                        emoji: emoji,
+                        category: self.category
+                    )
+                } else {
+                    let allDays: [WeekDay] = []
+                    createHabbitDelegate?.didUpdateIrregularEvent(
+                        id: self.id,
+                        name: name,
+                        days: allDays,
+                        color: color,
+                        emoji: emoji,
+                        category: self.category
+                    )
+                }
             } else {
-                let allDays: [WeekDay] = []
-                createHabbitDelegate?.didCreateIrregularEvent(
-                    name: name,
-                    days: allDays,
-                    color: color,
-                    emoji: emoji,
-                    category: self.category
-                )
+                // Логика для создания трекера
+                if isHabitOrRegular {
+                    createHabbitDelegate?.didCreateHabbit(
+                        name: name,
+                        days: selectedWeekDays,
+                        color: color,
+                        emoji: emoji,
+                        category: self.category
+                    )
+                } else {
+                    let allDays: [WeekDay] = []
+                    createHabbitDelegate?.didCreateIrregularEvent(
+                        name: name,
+                        days: allDays,
+                        color: color,
+                        emoji: emoji,
+                        category: self.category
+                    )
+                }
             }
         } else {
             print("Ошибка: selectedColor или selectedEmojiIndex равен nil")
@@ -452,6 +530,7 @@ extension CreateHabbitViewController {
         
         dismiss(animated: true)
     }
+
     
     @objc private func rejectButtonTapped(){
         print("createButtonTapped called") 

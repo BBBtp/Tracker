@@ -8,7 +8,7 @@ protocol TrackersCellDelegate: AnyObject {
 final class TrackersCollectionViewCell: UICollectionViewCell {
     static let cellIdentifier = "TrackerCell"
     private var daysCounter: Int = .zero
-    
+    var isPinned: Bool = false
     // UI элементы
     let coloredRectangleView = UIView()
     private let emojiLabel = UILabel()
@@ -28,6 +28,13 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     // Изображения для кнопки
     private let plusImage = UIImage(named: "plus")?.withTintColor(.white) ?? UIImage()
     private let doneImage = UIImage(named: "done")?.withTintColor(.white) ?? UIImage()
+    private let pinImage: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(systemName: "pin.fill")
+        imageView.tintColor = .white
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -48,7 +55,7 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupUI() {
-        [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton].forEach {
+        [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton, pinImage].forEach {
                     $0.translatesAutoresizingMaskIntoConstraints = false
                     contentView.addSubview($0)
                 }
@@ -67,16 +74,17 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         daysCounterLabel.textAlignment = .left
         
         coloredCircleButton.addTarget(self, action: #selector(coloredCircleButtonTapped), for: .touchUpInside)
-        [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton].forEach {
-            contentView.addSubview($0)
-        }
-        
         NSLayoutConstraint.activate([
             coloredRectangleView.topAnchor.constraint(equalTo: contentView.topAnchor),
             coloredRectangleView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             coloredRectangleView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             coloredRectangleView.heightAnchor.constraint(equalToConstant: 90),
-
+            
+            pinImage.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            pinImage.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 18),
+            pinImage.widthAnchor.constraint(equalToConstant: 12),
+            pinImage.heightAnchor.constraint(equalToConstant: 12),
+            
             whiteEmojiBackground.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 12),
             whiteEmojiBackground.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 12),
             whiteEmojiBackground.widthAnchor.constraint(equalToConstant: 24),
@@ -104,12 +112,14 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         ])
     }
 
-    func configure(with tracker: TrackerModel, isCompletedToday: Bool, completedDays: Int, indexPath: IndexPath) {
+    func configure(with tracker: TrackerModel, isCompletedToday: Bool, completedDays: Int, indexPath: IndexPath,isPinned: Bool) {
         self.trackerId = tracker.id
         self.indexPath = indexPath
+        self.isPinned = isPinned
         self.isCompletedToday = isCompletedToday
         mainLabel.text = tracker.title
         emojiLabel.text = tracker.emoji
+        pinImage.isHidden = !self.isPinned
         coloredRectangleView.backgroundColor = tracker.color
         updateCircleButton(isCompleted: isCompletedToday)
         daysCounterLabel.text = pluralizeDays(completedDays)
@@ -140,4 +150,5 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         delegate?.completeOrUncompleteTracker(trackerId: trackerId, indexPath: indexPath)
         
     }
+    
 }

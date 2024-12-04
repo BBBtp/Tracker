@@ -21,6 +21,7 @@
 		43534C712CFF16C100CFE18C /* NewCategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C702CFF16C100CFE18C /* NewCategoryViewController.swift */; };
 		43534C752CFF509700CFE18C /* CustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C742CFF509700CFE18C /* CustomButton.swift */; };
 		43534C782CFF603300CFE18C /* UIViewController+NavBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C772CFF603300CFE18C /* UIViewController+NavBar.swift */; };
+		43534C7C2D00450400CFE18C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43534C7A2D00450400CFE18C /* Localizable.strings */; };
 		436ECCE42CBD7625004ED70B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE32CBD7625004ED70B /* AppDelegate.swift */; };
 		436ECCE62CBD7625004ED70B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE52CBD7625004ED70B /* SceneDelegate.swift */; };
 		436ECCE82CBD7625004ED70B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE72CBD7625004ED70B /* ViewController.swift */; };
@@ -65,6 +66,9 @@
 		43534C702CFF16C100CFE18C /* NewCategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryViewController.swift; sourceTree = "<group>"; };
 		43534C742CFF509700CFE18C /* CustomButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomButton.swift; sourceTree = "<group>"; };
 		43534C772CFF603300CFE18C /* UIViewController+NavBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+NavBar.swift"; sourceTree = "<group>"; };
+		43534C7B2D00450400CFE18C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43534C812D00488300CFE18C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		43534C822D00488300CFE18C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		436ECCE02CBD7625004ED70B /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		436ECCE32CBD7625004ED70B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		436ECCE52CBD7625004ED70B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -147,6 +151,14 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		43534C792D0044B700CFE18C /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				43534C7A2D00450400CFE18C /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		436ECCD72CBD7624004ED70B = {
 			isa = PBXGroup;
 			children = (
@@ -166,6 +178,7 @@
 		436ECCE22CBD7625004ED70B /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
+				43534C792D0044B700CFE18C /* Resources */,
 				43534C762CFF601900CFE18C /* Extensions */,
 				43534C732CFF508100CFE18C /* Custom Components */,
 				43534C692CFEF41700CFE18C /* Categories */,
@@ -286,6 +299,7 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
 			);
 			mainGroup = 436ECCD72CBD7624004ED70B;
 			productRefGroup = 436ECCE12CBD7625004ED70B /* Products */;
@@ -303,6 +317,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				436ECCED2CBD7625004ED70B /* Assets.xcassets in Resources */,
+				43534C7C2D00450400CFE18C /* Localizable.strings in Resources */,
 				436ECCF02CBD7625004ED70B /* Base in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -359,10 +374,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		43534C7A2D00450400CFE18C /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				43534C7B2D00450400CFE18C /* en */,
+				43534C822D00488300CFE18C /* ru */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
 		436ECCEE2CBD7625004ED70B /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
 				436ECCEF2CBD7625004ED70B /* Base */,
+				43534C812D00488300CFE18C /* ru */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -375,6 +400,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -438,6 +464,7 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";

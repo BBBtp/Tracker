@@ -34,15 +34,13 @@ final class TrackerTypeViewController: UIViewController {
     }
     
     @objc private func habitButtonTaped() {
-        let viewController = CreateHabbitViewController()
-        viewController.isHabitOrRegular = true
+        let viewController = CreateHabbitViewController(isNew: true, isHabitOrRegular: true)
         viewController.createHabbitDelegate = self
         navigationController?.pushViewController(viewController, animated: true)
     }
     
     @objc private func irregularEventButtonTaped() {
-        let viewController = CreateHabbitViewController()
-        viewController.isHabitOrRegular = false
+        let viewController = CreateHabbitViewController(isNew: true, isHabitOrRegular: false)
         viewController.createHabbitDelegate = self
         navigationController?.pushViewController(viewController, animated: true)
     }
@@ -55,6 +53,15 @@ final class TrackerTypeViewController: UIViewController {
 }
 
 extension TrackerTypeViewController: CreateHabbitDelegate {
+    func didUpdateHabbit(id: UUID,name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        //
+    }
+    
+    func didUpdateIrregularEvent(id: UUID,name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
+        //
+    }
+    
+    
     func didCreateHabbit(name: String, days: [WeekDay], color: UIColor, emoji: String, category: String) {
         let newTracker = TrackerModel(
             id: UUID(),
