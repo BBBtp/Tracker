@@ -34,6 +34,7 @@ final class TrackerStore: NSObject {
     private let uiWeekDayMarshalling = WeekDayArrayTransformer()
     weak var delegate: TrackerStoreDelegate?
     private var date: Date
+    private var filter: FilterOptions
     private var insertedSections: [Int] = []
     private var deletedSections: [Int] = []
     private var insertedIndexes: [IndexPath] = []
@@ -56,14 +57,15 @@ final class TrackerStore: NSObject {
         return controller
     }()
     
-    convenience init(for date: Date) {
+    convenience init(for date: Date,with filter: FilterOptions) {
         let context = CoreDataManager.shared.context
-        self.init(context: context, for: date)
+        self.init(context: context, for: date,with: filter)
     }
         
-    init(context: NSManagedObjectContext, for date: Date) {
+    init(context: NSManagedObjectContext, for date: Date, with filter: FilterOptions) {
             self.context = context
             self.date = date
+            self.filter = filter
         }
 //MARK: - Public methods
     func addTracker(category: String, tracker: TrackerModel) {
@@ -90,7 +92,7 @@ final class TrackerStore: NSObject {
         }
     }
 
-    public func pinTracker(at indexPath: IndexPath) {
+    func pinTracker(at indexPath: IndexPath) {
         do {
             try pinTrackerToCoreData(at: indexPath)
         } catch {
@@ -98,7 +100,7 @@ final class TrackerStore: NSObject {
         }
     }
 
-    public func unpinTracker(at indexPath: IndexPath) {
+    func unpinTracker(at indexPath: IndexPath) {
         do {
             try unpinTrackerFromCoreData(at: indexPath)
         } catch {
@@ -111,12 +113,7 @@ final class TrackerStore: NSObject {
             return createTrackerCompletion(from: trackerCD)
         }
     
-    func updateDate(_ newDate: Date,_ searchText: String) {
-        date = newDate
-        fetchedResultsController.fetchRequest.predicate = fetchPredicate(searchText: searchText)
-           try? fetchedResultsController.performFetch()
-   }
-    
+   
     func changeCompletion(for indexPath: IndexPath, to isCompleted: Bool) {
             let trackerCoreData = fetchedResultsController.object(at: indexPath)
             do {
@@ -251,11 +248,23 @@ final class TrackerStore: NSObject {
             )
         }
     
-    private func fetchPredicate(searchText: String) -> NSPredicate {
+    private func fetchPredicate(with searchQuery: String? = nil) -> NSPredicate {
+        switch filter {
+        case .all, .today:
+            return allTrackersFetchPredicate(with: searchQuery)
+        case .completed:
+            return completedTrackersFetchPredicate(with: searchQuery)
+        case .uncompleted:
+            return uncompletedTrackersFetchPredicate(with: searchQuery)
+        }
+    }
+
+    private func allTrackersFetchPredicate(with searchQuery: String? = nil) -> NSPredicate {
         let weekday = WeekDay.from(date: date)
         let weekdayString = weekday.map { String($0.rawValue) } ?? ""
         
-        let titlePredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchText)
+        let titlePredicate = NSPredicate(format: "title CONTAINS[cd] %@", searchQuery ?? "")
+        
         let timeTablePredicate = NSPredicate(
             format: "(%K CONTAINS[n] %@) OR (%K == %@ AND (SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count > 0 OR SUBQUERY(%K, $record, $record != nil).@count == 0))",
             #keyPath(TrackerCD.timeTable),
@@ -266,7 +275,88 @@ final class TrackerStore: NSObject {
             date as NSDate,
             #keyPath(TrackerCD.records)
         )
-        return NSCompoundPredicate(orPredicateWithSubpredicates: [titlePredicate, timeTablePredicate])
+        
+        let finalPredicate = NSCompoundPredicate(orPredicateWithSubpredicates: [titlePredicate, timeTablePredicate])
+        
+        guard let searchQuery else {
+            return finalPredicate
+        }
+        
+        return combinePredicateWithSearchQuery(predicate: finalPredicate, query: searchQuery)
+    }
+
+    private func completedTrackersFetchPredicate(with searchQuery: String?) -> NSPredicate {
+        let finalPredicate = NSPredicate(
+            format: "SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count > 0",
+            #keyPath(TrackerCD.records),
+            date as NSDate)
+        
+        guard let searchQuery else {
+            return finalPredicate
+        }
+        
+        return combinePredicateWithSearchQuery(predicate: finalPredicate,
+                                               query: searchQuery)
+    }
+
+    private func uncompletedTrackersFetchPredicate(with searchQuery: String?) -> NSPredicate {
+        let notCompletedAtDatePredicate = NSPredicate(
+            format: "SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count == 0",
+            #keyPath(TrackerCD.records),
+            date as NSDate
+        )
+        
+        let weekday = WeekDay.from(date: date)
+        let weekdayString = weekday.map { String($0.rawValue) } ?? ""
+        
+        let schedulePredicate = NSPredicate(
+            format: "%K CONTAINS[n] %@",
+            #keyPath(TrackerCD.timeTable),
+            weekdayString
+        )
+        
+        let isNotCompletedRegular = NSCompoundPredicate(
+            andPredicateWithSubpredicates: [notCompletedAtDatePredicate, schedulePredicate])
+        
+        let isIrregular = NSPredicate(
+            format: "%K == %@",
+            #keyPath(TrackerCD.timeTable),
+            "")
+        
+        let isNotCompletedEver = NSPredicate(
+            format: "SUBQUERY(%K, $record, $record != nil).@count == 0",
+            #keyPath(TrackerCD.records))
+        
+        let isNotCompletedIrregular = NSCompoundPredicate(
+            andPredicateWithSubpredicates: [isIrregular, isNotCompletedEver])
+        
+        let finalPredicate = NSCompoundPredicate(
+            orPredicateWithSubpredicates: [isNotCompletedRegular, isNotCompletedIrregular])
+        
+        guard let searchQuery else {
+            return finalPredicate
+        }
+        
+        return combinePredicateWithSearchQuery(predicate: finalPredicate,
+                                               query: searchQuery)
+    }
+
+    private func combinePredicateWithSearchQuery(predicate: NSPredicate, query: String) -> NSPredicate {
+        let searchPredicate = NSPredicate(
+            format: "%K CONTAINS[c] %@",
+            #keyPath(TrackerCD.title),
+            query
+        )
+        
+        return NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, searchPredicate])
+    }
+
+    func applyFilter(_ filter: FilterOptions, on date: Date, with searchQuery: String?) {
+        self.filter = filter
+        self.date = date
+        
+        fetchedResultsController.fetchRequest.predicate = fetchPredicate(with: searchQuery)
+        try? fetchedResultsController.performFetch()
     }
     
     private func updateCompletionStatus(for trackerCoreData: TrackerCD, to isCompleted: Bool) throws {

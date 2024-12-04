@@ -22,6 +22,10 @@
 		43534C752CFF509700CFE18C /* CustomButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C742CFF509700CFE18C /* CustomButton.swift */; };
 		43534C782CFF603300CFE18C /* UIViewController+NavBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C772CFF603300CFE18C /* UIViewController+NavBar.swift */; };
 		43534C7C2D00450400CFE18C /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 43534C7A2D00450400CFE18C /* Localizable.strings */; };
+		43534C872D00AA4C00CFE18C /* UIColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C862D00AA4C00CFE18C /* UIColor.swift */; };
+		43534C8A2D00AA9400CFE18C /* FilterTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C892D00AA9400CFE18C /* FilterTableViewCell.swift */; };
+		43534C8C2D00AAA700CFE18C /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C8B2D00AAA700CFE18C /* FilterViewController.swift */; };
+		43534C8E2D00AB0100CFE18C /* FilterOptions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43534C8D2D00AB0100CFE18C /* FilterOptions.swift */; };
 		436ECCE42CBD7625004ED70B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE32CBD7625004ED70B /* AppDelegate.swift */; };
 		436ECCE62CBD7625004ED70B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE52CBD7625004ED70B /* SceneDelegate.swift */; };
 		436ECCE82CBD7625004ED70B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE72CBD7625004ED70B /* ViewController.swift */; };
@@ -69,6 +73,10 @@
 		43534C7B2D00450400CFE18C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		43534C812D00488300CFE18C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 		43534C822D00488300CFE18C /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		43534C862D00AA4C00CFE18C /* UIColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColor.swift; sourceTree = "<group>"; };
+		43534C892D00AA9400CFE18C /* FilterTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterTableViewCell.swift; sourceTree = "<group>"; };
+		43534C8B2D00AAA700CFE18C /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
+		43534C8D2D00AB0100CFE18C /* FilterOptions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterOptions.swift; sourceTree = "<group>"; };
 		436ECCE02CBD7625004ED70B /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		436ECCE32CBD7625004ED70B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		436ECCE52CBD7625004ED70B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -147,6 +155,7 @@
 			isa = PBXGroup;
 			children = (
 				43534C772CFF603300CFE18C /* UIViewController+NavBar.swift */,
+				43534C862D00AA4C00CFE18C /* UIColor.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -157,6 +166,16 @@
 				43534C7A2D00450400CFE18C /* Localizable.strings */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		43534C882D00AA6200CFE18C /* Filters */ = {
+			isa = PBXGroup;
+			children = (
+				43534C892D00AA9400CFE18C /* FilterTableViewCell.swift */,
+				43534C8B2D00AAA700CFE18C /* FilterViewController.swift */,
+				43534C8D2D00AB0100CFE18C /* FilterOptions.swift */,
+			);
+			path = Filters;
 			sourceTree = "<group>";
 		};
 		436ECCD72CBD7624004ED70B = {
@@ -178,6 +197,7 @@
 		436ECCE22CBD7625004ED70B /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
+				43534C882D00AA6200CFE18C /* Filters */,
 				43534C792D0044B700CFE18C /* Resources */,
 				43534C762CFF601900CFE18C /* Extensions */,
 				43534C732CFF508100CFE18C /* Custom Components */,
@@ -329,6 +349,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				43534C8C2D00AAA700CFE18C /* FilterViewController.swift in Sources */,
 				43534C782CFF603300CFE18C /* UIViewController+NavBar.swift in Sources */,
 				43010B4A2CD115DE00060277 /* TrackerCategoryModel.swift in Sources */,
 				43A1FEEA2CDE894400BE2123 /* GeometricParameters.swift in Sources */,
@@ -347,6 +368,7 @@
 				4388F9102CF0A23E00EBC579 /* TrackerType.swift in Sources */,
 				436ECCFA2CC7E76B004ED70B /* TrackersViewController.swift in Sources */,
 				436ECCE42CBD7625004ED70B /* AppDelegate.swift in Sources */,
+				43534C8E2D00AB0100CFE18C /* FilterOptions.swift in Sources */,
 				43010B4C2CD1160F00060277 /* TrackerRecordModel.swift in Sources */,
 				43010B402CCF90DC00060277 /* StatisticsViewController.swift in Sources */,
 				4388F9122CF0A24800EBC579 /* WeekDay.swift in Sources */,
@@ -358,7 +380,9 @@
 				43AA4E0C2CD3A38C007CC1C0 /* SheduleViewController.swift in Sources */,
 				43534C712CFF16C100CFE18C /* NewCategoryViewController.swift in Sources */,
 				43AA4E072CD3825B007CC1C0 /* CreateHabbitViewController.swift in Sources */,
+				43534C872D00AA4C00CFE18C /* UIColor.swift in Sources */,
 				43A1FEEE2CDF703600BE2123 /* CreateHabitCVHeader.swift in Sources */,
+				43534C8A2D00AA9400CFE18C /* FilterTableViewCell.swift in Sources */,
 				43A1FEFC2CDFB6BE00BE2123 /* TrackerRecordStore.swift in Sources */,
 				436ECCE62CBD7625004ED70B /* SceneDelegate.swift in Sources */,
 				43534C682CFEF21E00CFE18C /* StateStorage.swift in Sources */,

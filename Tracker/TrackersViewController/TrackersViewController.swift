@@ -4,6 +4,7 @@ import UIKit
 final class TrackersViewController: UIViewController {
     var collectionView: UICollectionView!
     var currentDate: Date = Date()
+    private var currentFilter: FilterOptions = .all
     var category: String = ""
     private let datePicker: UIDatePicker = {
         let picker = UIDatePicker()
@@ -18,6 +19,19 @@ final class TrackersViewController: UIViewController {
         searchBar.layer.cornerRadius = 10
         searchBar.backgroundImage = UIImage()
         return searchBar
+    }()
+    private lazy var filterButton: UIButton = {
+        let button = UIButton()
+        let title = "Фильтры"
+        button.setTitle(title, for: .normal)
+        button.backgroundColor = .ypBlue
+        button.overrideUserInterfaceStyle = .light
+        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
+        button.layer.cornerRadius = 16
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(filterButtonDidTap), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
     }()
     private let trackTitle: UILabel = {
         let label = UILabel()
@@ -37,7 +51,7 @@ final class TrackersViewController: UIViewController {
     private let trackerCategoryStore = TrackerCategoryStore()
     
     private lazy var trackerStore: TrackerStore = {
-        return TrackerStore(for: self.currentDate)
+        return TrackerStore(for: self.currentDate,with: currentFilter)
     }()
     private lazy var dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -65,7 +79,6 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        trackerStore.updateDate(currentDate,"")
         setupPlaceholder()
         searchTextField.delegate = self
         setupUI()
@@ -76,6 +89,8 @@ final class TrackersViewController: UIViewController {
 extension TrackersViewController {
     private func addTracker(to category: String, tracker: TrackerModel) {
         trackerStore.addTracker(category: category, tracker: tracker)
+        collectionView.reloadData()
+        setupPlaceholder()
     }
     private func addTracker(tracker: TrackerModel) {
         addTracker(to: self.category , tracker: tracker)
@@ -96,13 +111,44 @@ extension TrackersViewController {
 }
 
 extension TrackersViewController {
-    @objc func datePickerValueChanged(_ sender: UIDatePicker) {
-        currentDate = sender.date
-        trackerStore.updateDate(currentDate,"")
+    func applyFilterAndUpdateView(searhText: String?) {
+        trackerStore.applyFilter(currentFilter, on: currentDate, with: searhText)
         collectionView.reloadData()
         setupPlaceholder()
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
+    }
+    @objc private func filterButtonDidTap() {
+        
+        let viewController = FilterViewController()
+        viewController.currentFilter = currentFilter
+        viewController.onFilterSelected = { [weak self] filter in
+            guard let self else { return }
+            
+            self.currentFilter = filter
+            
+            if filter == .today {
+                self.currentDate = Date()
+                datePicker.date = Date()
+            }
+            
+            
+            self.applyFilterAndUpdateView(searhText: nil)
+        }
+        
+        let navigationController = UINavigationController(rootViewController: viewController)
+        navigationController.modalPresentationStyle = .formSheet
+        present(navigationController, animated: true)
+    }
+    
+    @objc func datePickerValueChanged(_ sender: UIDatePicker) {
+        currentDate = sender.date
+        print(currentDate)
+        if currentFilter == .today && currentDate != Date() {
+            currentFilter = .all
+        }
+        applyFilterAndUpdateView(searhText: nil)
+        
+        setupPlaceholder()
+        
     }
     
     @objc func showTrackerType() {
@@ -237,12 +283,17 @@ extension TrackersViewController {
         
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        
+        view.addSubview(filterButton)
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: view.topAnchor, constant: 206),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            
+            filterButton.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
+            filterButton.widthAnchor.constraint(equalToConstant: 114),
+            filterButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
@@ -309,8 +360,7 @@ extension TrackersViewController: TrackersCellDelegate {
 
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        trackerStore.updateDate(currentDate, searchText)
-        collectionView.reloadData()
+        applyFilterAndUpdateView(searhText: searchText)
         setupPlaceholder()
     }
     
