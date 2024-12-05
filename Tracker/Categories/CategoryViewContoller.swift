@@ -42,7 +42,7 @@ final class CategoryViewContoller: UIViewController {
         tableView.dataSource = self
         
         tableView.separatorStyle = .none
-        tableView.backgroundColor = .white
+        tableView.backgroundColor = .ypWhite
         tableView.layer.cornerRadius = 16
         tableView.layer.masksToBounds = true
         
@@ -79,7 +79,7 @@ final class CategoryViewContoller: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         
         view.addSubview(tableView)
         view.addSubview(createCategoryButton)
@@ -128,8 +128,7 @@ extension CategoryViewContoller: UITableViewDelegate {
 extension CategoryViewContoller {
     private func setupPlaceholder() {
         tableView.isHidden = viewModel.categoriesIsEmpty
-        placeholderLabel.isHidden = !viewModel.categoriesIsEmpty
-        placeholderImageView.isHidden = !viewModel.categoriesIsEmpty
+        emptyView.isHidden = !viewModel.categoriesIsEmpty
     }
     
     private func setupConstraints() {

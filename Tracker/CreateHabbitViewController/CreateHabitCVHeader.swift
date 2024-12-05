@@ -18,7 +18,7 @@ final class CreateHabitCVHeader: UICollectionReusableView {
         
         addSubview(titleLabel)
         titleLabel.font = UIFont(name: "SF Pro", size: 19)
-        titleLabel.textColor = .black
+        titleLabel.textColor = .ypBlack
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([

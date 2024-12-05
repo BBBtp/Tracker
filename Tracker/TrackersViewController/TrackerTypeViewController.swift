@@ -8,7 +8,7 @@ final class TrackerTypeViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         setupNavigationBar(title: NSLocalizedString("addTrackerScreenTitle", comment: "Create tracker"))
         setupUI()
     }

@@ -27,8 +27,8 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     var indexPath: IndexPath?
     
     // Изображения для кнопки
-    private let plusImage = UIImage(named: "plus")?.withTintColor(.white) ?? UIImage()
-    private let doneImage = UIImage(named: "done")?.withTintColor(.white) ?? UIImage()
+    private let plusImage = UIImage(named: "plus")?.withTintColor(.ypWhite) ?? UIImage()
+    private let doneImage = UIImage(named: "done")?.withTintColor(.ypWhite) ?? UIImage()
     private let pinImage: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(systemName: "pin.fill")
@@ -55,10 +55,12 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     }
     
     private func setupUI() {
+        contentView.backgroundColor = .ypWhite
         [coloredRectangleView, whiteEmojiBackground, emojiLabel, mainLabel, nonColoredRectangleView, daysCounterLabel, coloredCircleButton, pinImage].forEach {
                     $0.translatesAutoresizingMaskIntoConstraints = false
                     contentView.addSubview($0)
                 }
+        
         coloredRectangleView.backgroundColor = .blue
         whiteEmojiBackground.backgroundColor = UIColor.white.withAlphaComponent(0.3)
         

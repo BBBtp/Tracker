@@ -16,7 +16,7 @@ final class SheduleViewController: UIViewController, UITableViewDelegate {
    
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         setupNavigationBar(title: NSLocalizedString("scheduleTitle", comment: "Shedule"))
         setupUI()
     }
@@ -61,7 +61,7 @@ extension SheduleViewController {
         tableView.showsVerticalScrollIndicator = false
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.isScrollEnabled = false
-        tableView.backgroundColor = .white
+        tableView.backgroundColor = .ypWhite
         tableView.translatesAutoresizingMaskIntoConstraints = false
         let stackView = UIStackView()
         stackView.axis = .vertical

@@ -6,20 +6,34 @@ final class TrackersViewController: UIViewController {
     var currentDate: Date = Date()
     private var currentFilter: FilterOptions = .all
     var category: String = ""
-    private let datePicker: UIDatePicker = {
+    private var searchText: String?
+    private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
+        picker.backgroundColor = .ypLightGray
+        picker.overrideUserInterfaceStyle = .light
+        picker.layer.cornerRadius = 8
+        picker.layer.masksToBounds = true
         picker.preferredDatePickerStyle = .compact
         picker.datePickerMode = .date
+        picker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
         return picker
     }()
-    private let searchTextField: UISearchBar = {
-        let searchBar = UISearchBar()
-        searchBar.placeholder = NSLocalizedString("searchBarPlaceholder", comment: "Placeholder text for search bar")
-        searchBar.layer.cornerRadius = 10
-        searchBar.backgroundImage = UIImage()
-        return searchBar
+    private let searchController: UISearchController = {
+        let searchController = UISearchController()
+        let searchTextField = searchController.searchBar.searchTextField
+        searchTextField.clearButtonMode = .never
+        searchTextField.attributedPlaceholder = NSAttributedString(
+            string: NSLocalizedString("searchBarPlaceholder", comment: "Placeholder text for search bar"),
+            attributes: [NSAttributedString.Key.foregroundColor: UIColor.ypWhiteGray]
+        )
+        
+        if let glassIconView = searchTextField.leftView as? UIImageView {
+            glassIconView.image = glassIconView.image?.withRenderingMode(.alwaysTemplate)
+            glassIconView.tintColor = .ypWhiteGray
+        }
+        return searchController
     }()
-
+    
     private lazy var filterButton: UIButton = {
         let button = FilterButton(title: NSLocalizedString("filterScreenTitle", comment: "Filter button title"))
         button.addTarget(self, action: #selector(filterButtonDidTap), for: .touchUpInside)
@@ -77,10 +91,10 @@ final class TrackersViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        searchTextField.delegate = self
+        view.backgroundColor = .ypWhite
         setupUI()
         configureViewState()
+        applyFilterAndUpdateView()
     }
     
 }
@@ -93,7 +107,7 @@ extension TrackersViewController {
     }
     private func addTracker(tracker: TrackerModel) {
         addTracker(to: self.category , tracker: tracker)
-       configureViewState()
+        configureViewState()
     }
     
     private func updateTracker(tracker: TrackerModel) {
@@ -110,8 +124,8 @@ extension TrackersViewController {
 }
 
 extension TrackersViewController {
-    func applyFilterAndUpdateView(searhText: String?) {
-        trackerStore.applyFilter(currentFilter, on: currentDate, with: searhText)
+    func applyFilterAndUpdateView() {
+        trackerStore.applyFilter(currentFilter, on: currentDate, with: searchText)
         collectionView.reloadData()
         configureViewState()
     }
@@ -130,7 +144,7 @@ extension TrackersViewController {
             }
             
             
-            self.applyFilterAndUpdateView(searhText: nil)
+            self.applyFilterAndUpdateView()
         }
         
         let navigationController = UINavigationController(rootViewController: viewController)
@@ -144,9 +158,9 @@ extension TrackersViewController {
         if currentFilter == .today && currentDate != Date() {
             currentFilter = .all
         }
-        applyFilterAndUpdateView(searhText: nil)
+        applyFilterAndUpdateView()
         
-       configureViewState()
+        configureViewState()
         
     }
     
@@ -215,35 +229,20 @@ extension TrackersViewController: UICollectionViewDataSource, UICollectionViewDe
 extension TrackersViewController {
     private func setupNavBar() {
         let addButton = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(showTrackerType))
-        addButton.tintColor = .black
+        addButton.tintColor = .ypBlack
         navigationItem.leftBarButtonItem = addButton
-    }
-    private func setupTitle() {
-        view.addSubview(trackTitle)
-        trackTitle.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(datePicker)
-        datePicker.translatesAutoresizingMaskIntoConstraints = false
-        datePicker.addTarget(self, action: #selector(datePickerValueChanged(_:)), for: .valueChanged)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(customView: datePicker)
         
-        NSLayoutConstraint.activate([
-            trackTitle.topAnchor.constraint(equalTo: view.topAnchor, constant: 88),
-            trackTitle.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            datePicker.centerXAnchor.constraint(equalTo: trackTitle.centerXAnchor),
-            datePicker.topAnchor.constraint(equalTo: view.topAnchor, constant: 88),
-            trackTitle.centerXAnchor.constraint(equalTo: datePicker.centerXAnchor)
-        ])
+        navigationController?.navigationBar.prefersLargeTitles = true
+        title = NSLocalizedString("trackersTabBarTitle", comment: "Title for the Trackers tab")
+        searchController.searchBar.searchTextField.textColor = .ypBlack
     }
     
     private func setupSearchTextField() {
-        view.addSubview(searchTextField)
-        searchTextField.translatesAutoresizingMaskIntoConstraints = false
-        
-        NSLayoutConstraint.activate([
-            searchTextField.topAnchor.constraint(equalTo: view.topAnchor, constant: 125),
-            searchTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
-        ])
+        searchController.hidesNavigationBarDuringPresentation = false
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchResultsUpdater = self
+        navigationItem.searchController = searchController
     }
     private func  createPlaceholder(){
         view.addSubview(placeholderView)
@@ -273,6 +272,7 @@ extension TrackersViewController {
     }
     
     private func setupCollectionView() {
+        
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .vertical
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -282,6 +282,7 @@ extension TrackersViewController {
         collectionView.register(TrackerCVHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: TrackerCVHeader.headerIdentifier)
         
         view.addSubview(collectionView)
+        collectionView.backgroundColor = .ypWhite
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(filterButton)
         NSLayoutConstraint.activate([
@@ -298,7 +299,6 @@ extension TrackersViewController {
     }
     
     func setupUI () {
-        setupTitle()
         setupNavBar()
         setupCollectionView()
         setupSearchTextField()
@@ -359,23 +359,6 @@ extension TrackersViewController: TrackersCellDelegate {
     }
 }
 
-extension TrackersViewController: UISearchBarDelegate {
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if !searchText.isEmpty{
-            applyFilterAndUpdateView(searhText: searchText)
-            configureViewState()
-        }else{
-            applyFilterAndUpdateView(searhText: nil)
-            configureViewState()
-        }
-       
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.resignFirstResponder()
-    }
-}
-
 extension TrackersViewController: TrackerStoreDelegate {
     func didUpdate(_ update: TrackerStoreUpdate) {
         collectionView.performBatchUpdates({
@@ -423,6 +406,7 @@ extension TrackersViewController {
             viewController.category = self.trackerStore.categoryName(for: indexPath)
             viewController.createHabbitDelegate = self
             let navigationController = UINavigationController(rootViewController: viewController)
+            
             navigationController.modalPresentationStyle = .formSheet
             self.present(navigationController, animated: true)
         }
@@ -520,3 +504,15 @@ extension TrackersViewController: CreateHabbitDelegate {
         collectionView.reloadData()
     }
 }
+
+extension TrackersViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        if let searchText = searchController.searchBar.text, !searchText.isEmpty {
+            self.searchText = searchText
+        } else {
+            self.searchText = nil
+        }
+        applyFilterAndUpdateView()
+    }
+}
+

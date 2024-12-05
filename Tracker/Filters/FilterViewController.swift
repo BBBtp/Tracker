@@ -15,7 +15,7 @@ final class FilterViewController: UIViewController {
         table.dataSource = self
         
         table.separatorStyle = .none
-        table.backgroundColor = .white
+        table.backgroundColor = .ypWhite
         table.layer.cornerRadius = 16
         table.layer.masksToBounds = true
         
@@ -32,7 +32,7 @@ final class FilterViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
 
         view.addSubview(tableView)
 

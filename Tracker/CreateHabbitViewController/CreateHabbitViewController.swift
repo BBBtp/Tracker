@@ -68,7 +68,7 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
             ),
             numberOfCompletions
         )
-        label.textColor = .black
+        label.textColor = .ypBlack
         label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
         label.isHidden = true
         label.textAlignment = .center
@@ -102,7 +102,7 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         inputNameCategory.delegate = self
         setupNavigationBar(title: isHabitOrRegular ? NSLocalizedString("newRegularTrackerTitle", comment: "New habit") : NSLocalizedString("newIrregularTrackerTitle", comment: "New irregular tracker"))
         setupUI()
@@ -247,7 +247,7 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
             
             header.titleLabel.text = NSLocalizedString("emojiGroupTitle", comment: "Emoji collection")
             header.titleLabel.font = UIFont.boldSystemFont(ofSize: 19)
-            header.titleLabel.backgroundColor = .white
+            header.titleLabel.backgroundColor = .ypWhite
             return header
         } else if collectionView == colorCollectionView {
             guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CreateHabitCVHeader.headerIdentifier, for: indexPath) as? CreateHabitCVHeader else{
@@ -255,7 +255,7 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
             }
             header.titleLabel.text = NSLocalizedString("colorGroupTitle", comment: "Color collection")
             header.titleLabel.font = UIFont.boldSystemFont(ofSize: 19)
-            header.titleLabel.backgroundColor = .white
+            header.titleLabel.backgroundColor = .ypWhite
             
             return header
         }
@@ -370,7 +370,7 @@ extension CreateHabbitViewController {
         
         sheduleTableView.dataSource = self
         sheduleTableView.delegate = self
-        sheduleTableView.backgroundColor = .white
+        sheduleTableView.backgroundColor = .ypWhite
         sheduleTableView.translatesAutoresizingMaskIntoConstraints = false
         sheduleTableView.isScrollEnabled = false
         
@@ -386,7 +386,7 @@ extension CreateHabbitViewController {
         stackViewButtons.axis = .horizontal
         stackViewButtons.spacing = 8
         stackViewButtons.distribution = .fillEqually
-        stackViewButtons.backgroundColor = .white
+        stackViewButtons.backgroundColor = .ypWhite
         stackViewButtons.translatesAutoresizingMaskIntoConstraints = false
         
         let buttonCreate = createButtonCreate(title: isNew ? NSLocalizedString("createButtonTitle", comment: "Create tracker") :  NSLocalizedString("saveButtonTitle", comment: "Save update tracker"), action: #selector(createButtonTapped))

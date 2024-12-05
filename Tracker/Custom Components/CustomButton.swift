@@ -29,12 +29,13 @@ class CustomButton: UIButton {
     private func configureButton(for type: ButtonTypeCustom) {
         switch type {
         case .create:
-            self.backgroundColor = .black
+            self.backgroundColor = .ypBlack
             self.layer.cornerRadius = 16
+            self.setTitleColor(.ypWhite, for: .normal)
             self.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
-            
+           
         case .reject:
-            self.backgroundColor = .white
+            self.backgroundColor = .ypWhite
             self.setTitleColor(.red, for: .normal)
             self.layer.borderColor = UIColor.red.cgColor
             self.layer.borderWidth = 1
@@ -47,19 +48,19 @@ class CustomButton: UIButton {
     }
     
     @objc private func buttonPressed(_ sender: UIButton) {
-        if self.backgroundColor == .black {
+        if self.backgroundColor == .ypBlack {
             sender.backgroundColor = .darkGray
         } else {
             sender.backgroundColor = .red
-            sender.setTitleColor(.white, for: .normal)
+            sender.setTitleColor(.ypWhite, for: .normal)
         }
     }
     
     @objc private func buttonReleased(_ sender: UIButton) {
         if self.backgroundColor == .darkGray {
-            sender.backgroundColor = .black
+            sender.backgroundColor = .ypBlack
         } else {
-            sender.backgroundColor = .white
+            sender.backgroundColor = .ypWhite
             sender.setTitleColor(.red, for: .normal)
         }
     }

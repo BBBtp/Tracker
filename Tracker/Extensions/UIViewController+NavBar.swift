@@ -12,11 +12,11 @@ extension UIViewController {
     func setupNavigationBar(title: String, hidesBackButton: Bool = true) {
         self.title = title
         navigationItem.hidesBackButton = hidesBackButton
-        navigationController?.navigationBar.barTintColor = .white
+        navigationController?.navigationBar.barTintColor = .ypWhite
         navigationController?.navigationBar.shadowImage = UIImage()
         navigationController?.navigationBar.titleTextAttributes = [
             NSAttributedString.Key.font: UIFont.systemFont(ofSize: 16, weight: .medium),
-            NSAttributedString.Key.foregroundColor: UIColor.black
+            NSAttributedString.Key.foregroundColor: UIColor.ypBlack
         ]
     }
 }

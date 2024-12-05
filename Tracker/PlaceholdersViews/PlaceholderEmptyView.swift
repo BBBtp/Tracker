@@ -40,7 +40,7 @@ final class PlaceholderEmptyView: UIView{
     
     private func setupLabel(){
         label.textAlignment = .center
-        label.textColor = .black
+        label.textColor = .ypBlack
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.numberOfLines = 2
         label.translatesAutoresizingMaskIntoConstraints = false

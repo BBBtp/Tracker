@@ -14,7 +14,7 @@ final class StatisticsViewController: UIViewController {
     
     private lazy var containerViewCompleted: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
         view.layer.borderWidth = 0
@@ -23,7 +23,7 @@ final class StatisticsViewController: UIViewController {
     }()
     private lazy var containerViewBest: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
         view.layer.borderWidth = 0
@@ -32,7 +32,7 @@ final class StatisticsViewController: UIViewController {
     }()
     private lazy var containerViewPerfect: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
         view.layer.borderWidth = 0
@@ -41,7 +41,7 @@ final class StatisticsViewController: UIViewController {
     }()
     private lazy var containerViewAverage: UIView = {
         let view = UIView()
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
         view.layer.cornerRadius = 16
         view.layer.masksToBounds = true
         view.layer.borderWidth = 0
@@ -149,6 +149,9 @@ final class StatisticsViewController: UIViewController {
         let averageCompletion = statisticsService.averageCompletion
 
         containerViewCompleted.isHidden = numberOfCompleted == 0
+        containerViewBest.isHidden = bestStreak == 0
+        containerViewPerfect.isHidden = perfectDays == 0
+        containerViewAverage.isHidden = averageCompletion == 0
         emptyView.isHidden = numberOfCompleted > 0
 
         if numberOfCompleted == 0 {
@@ -173,7 +176,7 @@ final class StatisticsViewController: UIViewController {
     // MARK: - Private Methods
     
     private func setupViews() {
-        [emptyView,containerViewCompleted,containerViewBest,containerViewPerfect,containerViewAverage].forEach {
+        [emptyView,containerViewCompleted,containerViewBest,containerViewAverage,containerViewPerfect].forEach {
             view.addSubview($0)
         }
         [completedNumberLabel,completedCaptionLabel].forEach {
@@ -192,7 +195,7 @@ final class StatisticsViewController: UIViewController {
         navigationController?.navigationBar.prefersLargeTitles = true
         title = NSLocalizedString("statisticsTabBarTitle", comment: "Title for the Statistics tab")
         
-        view.backgroundColor = .white
+        view.backgroundColor = .ypWhite
     }
 
     
