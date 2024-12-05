@@ -63,20 +63,20 @@ final class TrackerStore: NSObject {
         let context = CoreDataManager.shared.context
         self.init(context: context, for: date,with: filter)
     }
-        
+    
     init(context: NSManagedObjectContext, for date: Date, with filter: FilterOptions) {
-            self.context = context
-            self.date = date
-            self.filter = filter
-        }
+        self.context = context
+        self.date = date
+        self.filter = filter
+    }
     
     override init() {
-        date = Date()
-        filter = .all
+        self.date = Date()
+        self.filter = .all
         let context = CoreDataManager.shared.context
         self.context = context
     }
-//MARK: - Public methods
+    //MARK: - Public methods
     func addTracker(category: String, tracker: TrackerModel) {
         do {
             try addTrackerToCoreData(to: category, tracker: tracker)
@@ -100,7 +100,7 @@ final class TrackerStore: NSObject {
             print("Ошибка при удалении трекера: \(error)")
         }
     }
-
+    
     func pinTracker(at indexPath: IndexPath) {
         do {
             try pinTrackerToCoreData(at: indexPath)
@@ -108,7 +108,7 @@ final class TrackerStore: NSObject {
             print("Ошибка при закреплении трекера: \(error)")
         }
     }
-
+    
     func unpinTracker(at indexPath: IndexPath) {
         do {
             try unpinTrackerFromCoreData(at: indexPath)
@@ -118,19 +118,19 @@ final class TrackerStore: NSObject {
     }
     
     func completionStatus(for indexPath: IndexPath) -> TrackerCompletion {
-            let trackerCD = fetchedResultsController.object(at: indexPath)
-            return createTrackerCompletion(from: trackerCD)
-        }
+        let trackerCD = fetchedResultsController.object(at: indexPath)
+        return createTrackerCompletion(from: trackerCD)
+    }
     
-   
+    
     func changeCompletion(for indexPath: IndexPath, to isCompleted: Bool) {
-            let trackerCoreData = fetchedResultsController.object(at: indexPath)
-            do {
-                try updateCompletionStatus(for: trackerCoreData, to: isCompleted)
-            } catch {
-                print("Ошибка при изменении статуса завершения: \(error)")
-            }
+        let trackerCoreData = fetchedResultsController.object(at: indexPath)
+        do {
+            try updateCompletionStatus(for: trackerCoreData, to: isCompleted)
+        } catch {
+            print("Ошибка при изменении статуса завершения: \(error)")
         }
+    }
     func trackerType(at indexPath: IndexPath) -> Bool {
         let trackerData = fetchedResultsController.object(at: indexPath)
         return trackerData.type == 1 ? true : false
@@ -158,38 +158,21 @@ final class TrackerStore: NSObject {
     }
     
     func deleteAll() throws {
-        let fetchRequestRecords: NSFetchRequest<NSFetchRequestResult> = TrackerRecordCD.fetchRequest()
-        let fetchRequestTrackers: NSFetchRequest<NSFetchRequestResult> = TrackerCD.fetchRequest()
-        let fetchRequestCategories: NSFetchRequest<NSFetchRequestResult> = TrackerCategoryCD.fetchRequest()
+        let fetchRequestTrackers: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
+        let fetchRequestRecords: NSFetchRequest<TrackerRecordCD> = TrackerRecordCD.fetchRequest()
+        let fetchRequestCategories: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
         
-        let batchDeleteRequestRecords = NSBatchDeleteRequest(fetchRequest: fetchRequestRecords)
-        let batchDeleteRequestTrackers = NSBatchDeleteRequest(fetchRequest: fetchRequestTrackers)
-        let batchDeleteRequestCategories = NSBatchDeleteRequest(fetchRequest: fetchRequestCategories)
+        let trackers = try context.fetch(fetchRequestTrackers)
+        let records = try context.fetch(fetchRequestRecords)
+        let categories = try context.fetch(fetchRequestCategories)
         
-        batchDeleteRequestRecords.resultType = .resultTypeObjectIDs
-        batchDeleteRequestTrackers.resultType = .resultTypeObjectIDs
-        batchDeleteRequestCategories.resultType = .resultTypeObjectIDs
+        trackers.forEach { context.delete($0) }
+        records.forEach { context.delete($0) }
+        categories.forEach { context.delete($0) }
         
-        let resultRecords = try context.execute(batchDeleteRequestRecords) as? NSBatchDeleteResult
-        let resultTrackers = try context.execute(batchDeleteRequestTrackers) as? NSBatchDeleteResult
-        let resultCategories = try context.execute(batchDeleteRequestCategories) as? NSBatchDeleteResult
-        
-        if let deletedRecordIDs = resultRecords?.result as? [NSManagedObjectID] {
-            let changes = [NSDeletedObjectsKey: deletedRecordIDs]
-            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
-        }
-        
-        if let deletedTrackerIDs = resultTrackers?.result as? [NSManagedObjectID] {
-            let changes = [NSDeletedObjectsKey: deletedTrackerIDs]
-            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
-        }
-        
-        if let deletedCategoryIDs = resultCategories?.result as? [NSManagedObjectID] {
-            let changes = [NSDeletedObjectsKey: deletedCategoryIDs]
-            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
-        }
+        try context.save()
     }
-//MARK: - Private CoreData methods
+    //MARK: - Private CoreData methods
     private func addTrackerToCoreData(to category: String, tracker: TrackerModel) throws {
         let categoryEntity = try fetchOrAddCategory(category)
         let newTracker = TrackerCD(context: context)
@@ -206,22 +189,22 @@ final class TrackerStore: NSObject {
     }
     private func updateTrackerInCoreData(in category: String, updatedTracker: TrackerModel) throws {
         
-            let categoryEntity = try fetchOrAddCategory(category)
+        let categoryEntity = try fetchOrAddCategory(category)
         guard let trackerCD = fetchTrackerByID(updatedTracker.id)
         else {
-                throw NSError(domain: "TrackerStore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Tracker not found in the specified category."])
-            }
-
-            trackerCD.title = updatedTracker.title
-            trackerCD.type = updatedTracker.type == .habit ? 1 : 2
-            trackerCD.emoji = updatedTracker.emoji
-            trackerCD.color = uiColorMarshalling.ColorToString(from: updatedTracker.color)
-            trackerCD.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(updatedTracker.timeTable)
-            trackerCD.category = categoryEntity
-            
-            categoryEntity.addToTrackers(trackerCD)
-            try context.save()
+            throw NSError(domain: "TrackerStore", code: 404, userInfo: [NSLocalizedDescriptionKey: "Tracker not found in the specified category."])
         }
+        
+        trackerCD.title = updatedTracker.title
+        trackerCD.type = updatedTracker.type == .habit ? 1 : 2
+        trackerCD.emoji = updatedTracker.emoji
+        trackerCD.color = uiColorMarshalling.ColorToString(from: updatedTracker.color)
+        trackerCD.timeTable = uiWeekDayMarshalling.WeekDayArrayToString(updatedTracker.timeTable)
+        trackerCD.category = categoryEntity
+        
+        categoryEntity.addToTrackers(trackerCD)
+        try context.save()
+    }
     
     private func pinTrackerToCoreData(at indexPath: IndexPath) throws {
         let trackerCoreData = fetchedResultsController.object(at: indexPath)
@@ -235,8 +218,8 @@ final class TrackerStore: NSObject {
         
         try context.save()
     }
-
-   
+    
+    
     private func unpinTrackerFromCoreData(at indexPath: IndexPath) throws {
         let trackerCoreData = fetchedResultsController.object(at: indexPath)
         
@@ -276,33 +259,33 @@ final class TrackerStore: NSObject {
         }
     }
     
-
+    
     private func createTrackerCompletion(from trackerCD: TrackerCD) -> TrackerCompletion {
-            let color = uiColorMarshalling.stringToColor(from: trackerCD.color ?? "")
-            let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(trackerCD.timeTable ?? "")
-            
-            let tracker = TrackerModel(
-                id: trackerCD.id ?? UUID(),
-                title: trackerCD.title ?? "",
-                color: color,
-                emoji: trackerCD.emoji ?? "",
-                timeTable: weekDays,
-                type: trackerCD.type == 1 ? .habit : .irregularEvent
-            )
-            
-            let isCompleted = trackerCD.records?.contains { record in
-                guard let trackerRecord = record as? TrackerRecordCD,
-                      let trackerDate = trackerRecord.date else { return false }
-                return Calendar.current.isDate(trackerDate, inSameDayAs: date)
-            } ?? false
-            
-            return TrackerCompletion(
-                tracker: tracker,
-                numberOfCompletions: trackerCD.records?.count ?? 0,
-                isCompleted: isCompleted,
-                isPinned: trackerCD.category?.isSelected ?? false
-            )
-        }
+        let color = uiColorMarshalling.stringToColor(from: trackerCD.color ?? "")
+        let weekDays = uiWeekDayMarshalling.StringToWeekDayArray(trackerCD.timeTable ?? "")
+        
+        let tracker = TrackerModel(
+            id: trackerCD.id ?? UUID(),
+            title: trackerCD.title ?? "",
+            color: color,
+            emoji: trackerCD.emoji ?? "",
+            timeTable: weekDays,
+            type: trackerCD.type == 1 ? .habit : .irregularEvent
+        )
+        
+        let isCompleted = trackerCD.records?.contains { record in
+            guard let trackerRecord = record as? TrackerRecordCD,
+                  let trackerDate = trackerRecord.date else { return false }
+            return Calendar.current.isDate(trackerDate, inSameDayAs: date)
+        } ?? false
+        
+        return TrackerCompletion(
+            tracker: tracker,
+            numberOfCompletions: trackerCD.records?.count ?? 0,
+            isCompleted: isCompleted,
+            isPinned: trackerCD.category?.isSelected ?? false
+        )
+    }
     
     private func fetchPredicate(with searchQuery: String? = nil) -> NSPredicate {
         switch filter {
@@ -314,7 +297,7 @@ final class TrackerStore: NSObject {
             return uncompletedTrackersFetchPredicate(with: searchQuery)
         }
     }
-
+    
     private func allTrackersFetchPredicate(with searchQuery: String? = nil) -> NSPredicate {
         let weekday = WeekDay.from(date: date)
         let weekdayString = weekday.map { String($0.rawValue) } ?? ""
@@ -340,7 +323,7 @@ final class TrackerStore: NSObject {
         
         return combinePredicateWithSearchQuery(predicate: finalPredicate, query: searchQuery)
     }
-
+    
     private func completedTrackersFetchPredicate(with searchQuery: String?) -> NSPredicate {
         let finalPredicate = NSPredicate(
             format: "SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count > 0",
@@ -354,7 +337,7 @@ final class TrackerStore: NSObject {
         return combinePredicateWithSearchQuery(predicate: finalPredicate,
                                                query: searchQuery)
     }
-
+    
     private func uncompletedTrackersFetchPredicate(with searchQuery: String?) -> NSPredicate {
         let notCompletedAtDatePredicate = NSPredicate(
             format: "SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count == 0",
@@ -396,7 +379,7 @@ final class TrackerStore: NSObject {
         return combinePredicateWithSearchQuery(predicate: finalPredicate,
                                                query: searchQuery)
     }
-
+    
     private func combinePredicateWithSearchQuery(predicate: NSPredicate, query: String) -> NSPredicate {
         let searchPredicate = NSPredicate(
             format: "%K CONTAINS[c] %@",
@@ -406,7 +389,7 @@ final class TrackerStore: NSObject {
         
         return NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, searchPredicate])
     }
-
+    
     func applyFilter(_ filter: FilterOptions, on date: Date, with searchQuery: String?) {
         self.filter = filter
         self.date = date
@@ -437,89 +420,89 @@ final class TrackerStore: NSObject {
             try context.save()
         }
     }
-
+    
 }
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
     
     var isEmpty: Bool {
-            if let fetchedObjects = fetchedResultsController.fetchedObjects {
-                return fetchedObjects.isEmpty
-            } else {
-                return true
-            }
+        if let fetchedObjects = fetchedResultsController.fetchedObjects {
+            return fetchedObjects.isEmpty
+        } else {
+            return true
         }
-        
-        func sectionName(for section: Int) -> String {
-            return fetchedResultsController.sections?[section].name ?? ""
-        }
-        
-        var numberOfSections: Int {
-            fetchedResultsController.sections?.count ?? 0
-        }
-        
-        func numberOfItemsInSection(_ section: Int) -> Int {
-            fetchedResultsController.sections?[section].numberOfObjects ?? 0
-        }
+    }
+    
+    func sectionName(for section: Int) -> String {
+        return fetchedResultsController.sections?[section].name ?? ""
+    }
+    
+    var numberOfSections: Int {
+        fetchedResultsController.sections?.count ?? 0
+    }
+    
+    func numberOfItemsInSection(_ section: Int) -> Int {
+        fetchedResultsController.sections?[section].numberOfObjects ?? 0
+    }
     
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-            insertedSections.removeAll()
-            deletedSections.removeAll()
-            insertedIndexes.removeAll()
-            deletedIndexes.removeAll()
-            updatedIndexes.removeAll()
-            movedIndexes.removeAll()
+        insertedSections.removeAll()
+        deletedSections.removeAll()
+        insertedIndexes.removeAll()
+        deletedIndexes.removeAll()
+        updatedIndexes.removeAll()
+        movedIndexes.removeAll()
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                    didChange sectionInfo: NSFetchedResultsSectionInfo,
+                    atSectionIndex sectionIndex: Int,
+                    for type: NSFetchedResultsChangeType) {
+        switch type {
+        case .insert:
+            insertedSections.append(sectionIndex)
+        case .delete:
+            deletedSections.append(sectionIndex)
+        default:
+            break
         }
-        
-        func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
-                        didChange sectionInfo: NSFetchedResultsSectionInfo,
-                        atSectionIndex sectionIndex: Int,
-                        for type: NSFetchedResultsChangeType) {
-            switch type {
-            case .insert:
-                insertedSections.append(sectionIndex)
-            case .delete:
-                deletedSections.append(sectionIndex)
-            default:
-                break
+    }
+    
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
+                    didChange anObject: Any,
+                    at indexPath: IndexPath?,
+                    for type: NSFetchedResultsChangeType,
+                    newIndexPath: IndexPath?) {
+        switch type {
+        case .delete:
+            if let indexPath {
+                deletedIndexes.append(indexPath)
             }
-        }
-        
-        func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>,
-                        didChange anObject: Any,
-                        at indexPath: IndexPath?,
-                        for type: NSFetchedResultsChangeType,
-                        newIndexPath: IndexPath?) {
-            switch type {
-            case .delete:
-                if let indexPath {
-                    deletedIndexes.append(indexPath)
-                }
-            case .insert:
-                if let newIndexPath {
-                    insertedIndexes.append(newIndexPath)
-                }
-            case .update:
-                if let indexPath {
-                    updatedIndexes.append(indexPath)
-                }
-            case .move:
-                if let oldIndexPath = indexPath, let newIndexPath = newIndexPath {
-                    movedIndexes.append((from: oldIndexPath, to: newIndexPath))
-                }
-            @unknown default:
-                break
+        case .insert:
+            if let newIndexPath {
+                insertedIndexes.append(newIndexPath)
             }
+        case .update:
+            if let indexPath {
+                updatedIndexes.append(indexPath)
+            }
+        case .move:
+            if let oldIndexPath = indexPath, let newIndexPath = newIndexPath {
+                movedIndexes.append((from: oldIndexPath, to: newIndexPath))
+            }
+        @unknown default:
+            break
         }
-        func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
-            let update = TrackerStoreUpdate(
-                insertedSections: insertedSections,
-                deletedSections: deletedSections,
-                insertedIndexes: insertedIndexes,
-                deletedIndexes: deletedIndexes,
-                updatedIndexes: updatedIndexes,
-                movedIndexes: movedIndexes
-            )
-            delegate?.didUpdate(update)
-        }
+    }
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        let update = TrackerStoreUpdate(
+            insertedSections: insertedSections,
+            deletedSections: deletedSections,
+            insertedIndexes: insertedIndexes,
+            deletedIndexes: deletedIndexes,
+            updatedIndexes: updatedIndexes,
+            movedIndexes: movedIndexes
+        )
+        delegate?.didUpdate(update)
+    }
 }

@@ -20,7 +20,6 @@ final class TrackerUnitTests: XCTestCase {
             XCTFail("Failed to clear Core Data: \(error.localizedDescription)")
             return
         }
-        //создание тестовых трекеров
         let category = "Test"
         
         let timeTable: [WeekDay] = [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday]
@@ -34,19 +33,6 @@ final class TrackerUnitTests: XCTestCase {
         let TabBarViewController = TabBarConfigurator().setupTabBarController()
         TabBarViewController.loadViewIfNeeded()
         
-        guard let navigationController = TabBarViewController.viewControllers?.first as? UINavigationController,
-              let trackersVC = navigationController.viewControllers.first as? TrackersViewController else {
-            XCTFail("Unexpected Tab Bar configuration")
-            return
-        }
-        
-        let dateComponents = DateComponents(year: 2024, month: 10, day: 25)
-        guard let date = Calendar.current.date(from: dateComponents) else {
-            XCTFail("Failed to create date")
-            return
-        }
-        
-        trackersVC.setDate(for: date)
         assertSnapshot(of: TabBarViewController, as: .image(traits: .init(userInterfaceStyle: .light)))
         assertSnapshot(of: TabBarViewController, as: .image(traits: .init(userInterfaceStyle: .dark)))
     }

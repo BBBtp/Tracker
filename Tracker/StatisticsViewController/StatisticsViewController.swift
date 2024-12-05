@@ -216,12 +216,12 @@ final class StatisticsViewController: UIViewController {
             
             containerViewPerfect.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             containerViewPerfect.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            containerViewPerfect.topAnchor.constraint(equalTo: containerViewBest.bottomAnchor,constant: 12),
+            containerViewPerfect.topAnchor.constraint(equalTo: containerViewPerfect.bottomAnchor,constant: 12),
             containerViewPerfect.heightAnchor.constraint(greaterThanOrEqualToConstant: 90),
             
             containerViewAverage.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             containerViewAverage.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            containerViewAverage.topAnchor.constraint(equalTo: containerViewPerfect.bottomAnchor,constant: 12),
+            containerViewAverage.topAnchor.constraint(equalTo: containerViewBest.bottomAnchor,constant: 12),
             containerViewAverage.heightAnchor.constraint(greaterThanOrEqualToConstant: 90),
             
             
