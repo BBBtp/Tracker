@@ -31,7 +31,6 @@
 		43534C9C2D019A5200CFE18C /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 43534C9A2D019A5200CFE18C /* Localizable.stringsdict */; };
 		436ECCE42CBD7625004ED70B /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE32CBD7625004ED70B /* AppDelegate.swift */; };
 		436ECCE62CBD7625004ED70B /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE52CBD7625004ED70B /* SceneDelegate.swift */; };
-		436ECCE82CBD7625004ED70B /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCE72CBD7625004ED70B /* ViewController.swift */; };
 		436ECCED2CBD7625004ED70B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 436ECCEC2CBD7625004ED70B /* Assets.xcassets */; };
 		436ECCF02CBD7625004ED70B /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 436ECCEF2CBD7625004ED70B /* Base */; };
 		436ECCFA2CC7E76B004ED70B /* TrackersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 436ECCF92CC7E76B004ED70B /* TrackersViewController.swift */; };
@@ -59,6 +58,7 @@
 		43B2090F2D01A96B00960E83 /* PlaceholderEmptyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B2090E2D01A96B00960E83 /* PlaceholderEmptyView.swift */; };
 		43B209112D01AA0800960E83 /* StatisticService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B209102D01AA0800960E83 /* StatisticService.swift */; };
 		43B209132D01C45D00960E83 /* Notification.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B209122D01C45D00960E83 /* Notification.swift */; };
+		43B209162D01ED1400960E83 /* YandexMetricaService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B209152D01ED1400960E83 /* YandexMetricaService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -92,7 +92,6 @@
 		436ECCE02CBD7625004ED70B /* Tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		436ECCE32CBD7625004ED70B /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		436ECCE52CBD7625004ED70B /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
-		436ECCE72CBD7625004ED70B /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		436ECCEC2CBD7625004ED70B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		436ECCEF2CBD7625004ED70B /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		436ECCF12CBD7625004ED70B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -121,6 +120,7 @@
 		43B2090E2D01A96B00960E83 /* PlaceholderEmptyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceholderEmptyView.swift; sourceTree = "<group>"; };
 		43B209102D01AA0800960E83 /* StatisticService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticService.swift; sourceTree = "<group>"; };
 		43B209122D01C45D00960E83 /* Notification.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notification.swift; sourceTree = "<group>"; };
+		43B209152D01ED1400960E83 /* YandexMetricaService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YandexMetricaService.swift; sourceTree = "<group>"; };
 		FDAB6131425589840730E836 /* Pods-Tracker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tracker.debug.xcconfig"; path = "Target Support Files/Pods-Tracker/Pods-Tracker.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -219,6 +219,7 @@
 		436ECCE22CBD7625004ED70B /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
+				43B209142D01ECFA00960E83 /* YandexMetrica */,
 				43B2090D2D01A95500960E83 /* PlaceholdersViews */,
 				43534C882D00AA6200CFE18C /* Filters */,
 				43534C792D0044B700CFE18C /* Resources */,
@@ -233,7 +234,6 @@
 				436ECCF72CC7E72F004ED70B /* TrackersViewController */,
 				436ECCE32CBD7625004ED70B /* AppDelegate.swift */,
 				436ECCE52CBD7625004ED70B /* SceneDelegate.swift */,
-				436ECCE72CBD7625004ED70B /* ViewController.swift */,
 				436ECCEC2CBD7625004ED70B /* Assets.xcassets */,
 				436ECCEE2CBD7625004ED70B /* LaunchScreen.storyboard */,
 				436ECCF12CBD7625004ED70B /* Info.plist */,
@@ -309,6 +309,14 @@
 			path = PlaceholdersViews;
 			sourceTree = "<group>";
 		};
+		43B209142D01ECFA00960E83 /* YandexMetrica */ = {
+			isa = PBXGroup;
+			children = (
+				43B209152D01ED1400960E83 /* YandexMetricaService.swift */,
+			);
+			path = YandexMetrica;
+			sourceTree = "<group>";
+		};
 		D1E5990A0DA2FC36F6CB05EB /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -323,7 +331,6 @@
 				FDAB6131425589840730E836 /* Pods-Tracker.debug.xcconfig */,
 				3C298828E7EDCCB260FD1211 /* Pods-Tracker.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -460,10 +467,10 @@
 				43B209112D01AA0800960E83 /* StatisticService.swift in Sources */,
 				43AA4E0E2CD3ABE6007CC1C0 /* SheduleDelegate.swift in Sources */,
 				43A1FEF82CDFB6A200BE2123 /* TrackerStore.swift in Sources */,
-				436ECCE82CBD7625004ED70B /* ViewController.swift in Sources */,
 				43A1FF012CDFBC1500BE2123 /* UIColorTransformer.swift in Sources */,
 				4388F90A2CF09E8600EBC579 /* Constants.swift in Sources */,
 				4388F9102CF0A23E00EBC579 /* TrackerType.swift in Sources */,
+				43B209162D01ED1400960E83 /* YandexMetricaService.swift in Sources */,
 				436ECCFA2CC7E76B004ED70B /* TrackersViewController.swift in Sources */,
 				436ECCE42CBD7625004ED70B /* AppDelegate.swift in Sources */,
 				43534C8E2D00AB0100CFE18C /* FilterOptions.swift in Sources */,

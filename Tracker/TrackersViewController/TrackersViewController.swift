@@ -6,6 +6,7 @@ final class TrackersViewController: UIViewController {
     var currentDate: Date = Date()
     private var currentFilter: FilterOptions = .all
     var category: String = ""
+    private let yandexMetricaService = YandexMetricaService()
     private var searchText: String?
     private lazy var datePicker: UIDatePicker = {
         let picker = UIDatePicker()
@@ -97,6 +98,16 @@ final class TrackersViewController: UIViewController {
         applyFilterAndUpdateView()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        yandexMetricaService.report(event: "open", params: ["screen" : "main"])
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        yandexMetricaService.report(event: "close", params: ["screen" : "main"])
+    }
+    
 }
 //MARK: Create Trackers
 extension TrackersViewController {
@@ -130,7 +141,7 @@ extension TrackersViewController {
         configureViewState()
     }
     @objc private func filterButtonDidTap() {
-        
+        yandexMetricaService.report(event: "click", params: ["screen" : "main", "item": "filter"])
         let viewController = FilterViewController()
         viewController.currentFilter = currentFilter
         viewController.onFilterSelected = { [weak self] filter in
@@ -165,6 +176,7 @@ extension TrackersViewController {
     }
     
     @objc func showTrackerType() {
+        yandexMetricaService.report(event: "click", params: ["screen" : "main", "item": "add_track"])
         let trackerTypeVC = TrackerTypeViewController()
         trackerTypeVC.delegate = self
         let navigationController = UINavigationController(rootViewController: trackerTypeVC)
@@ -353,6 +365,7 @@ extension TrackersViewController: TrackersCellDelegate {
             let trackerCompletion = trackerStore.completionStatus(for: indexPath)
             let newCompletionStatus = !trackerCompletion.isCompleted
             trackerStore.changeCompletion(for: indexPath, to: newCompletionStatus)
+            yandexMetricaService.report(event: "click", params: ["screen" : "main", "item": "track"])
             NotificationCenter.default.post(name: .trackerCompletionUpdated, object: nil)
             collectionView.reloadItems(at: [indexPath])
         }
@@ -393,7 +406,7 @@ extension TrackersViewController {
         let title = NSLocalizedString("contextMenuEditOption", comment: "Edit item")
         return UIAction(title: title) { [weak self] _ in
             guard let self = self else { return }
-            
+            self.yandexMetricaService.report(event: "click", params: ["screen" : "main", "item": "edit"])
             let viewController = CreateHabbitViewController(isNew: false, isHabitOrRegular: trackerStore.trackerType(at: indexPath))
             
             let completion = self.trackerStore.completionStatus(for: indexPath)
@@ -416,7 +429,7 @@ extension TrackersViewController {
         let title = NSLocalizedString("contextMenuDeleteOption", comment: "Delete item")
         return UIAction(title: title, attributes: .destructive) { [weak self] action in
             guard let self = self else { return }
-            
+            self.yandexMetricaService.report(event: "click", params: ["screen" : "main", "item": "delete"])
             let actionSheetController = UIAlertController(
                 title: NSLocalizedString("deleteConfirmationMessage",
                                          comment: "Are you sure you want to delete this tracker?"),
