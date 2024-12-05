@@ -11,6 +11,7 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     var isPinned: Bool = false
     // UI элементы
     let coloredRectangleView = UIView()
+    private let cardView = UIView()
     private let emojiLabel = UILabel()
     private let whiteEmojiBackground = UIView()
     private let mainLabel = UILabel()
@@ -48,7 +49,6 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        // Закругление краев
         coloredRectangleView.layer.cornerRadius = 16
         whiteEmojiBackground.layer.cornerRadius = 12
         coloredCircleButton.layer.cornerRadius = 17
@@ -122,7 +122,13 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         pinImage.isHidden = !self.isPinned
         coloredRectangleView.backgroundColor = tracker.color
         updateCircleButton(isCompleted: isCompletedToday)
-        daysCounterLabel.text = pluralizeDays(completedDays)
+        daysCounterLabel.text = String(
+            format: NSLocalizedString(
+                "numberOfDays",
+                comment: "Number of days"
+            ),
+            completedDays
+        )
     }
     
     private func updateCircleButton(isCompleted: Bool) {
@@ -130,19 +136,6 @@ final class TrackersCollectionViewCell: UICollectionViewCell {
         coloredCircleButton.setImage(image, for: .normal)
         let alphaValue: CGFloat = isCompleted ? 0.3 : 1.0
         coloredCircleButton.backgroundColor = coloredRectangleView.backgroundColor?.withAlphaComponent(alphaValue)
-    }
-    
-    private func pluralizeDays(_ count: Int) -> String {
-        let remainder10 = count % 10
-        let remainder100 = count % 100
-        
-        if remainder10 == 1 && remainder100 != 11 {
-            return "\(count) день"
-        } else if remainder10 >= 2 && remainder10 <= 4 && (remainder100 < 10 || remainder100 >= 20) {
-            return "\(count) дня"
-        } else {
-            return "\(count) дней"
-        }
     }
     
     @objc private func coloredCircleButtonTapped() {

@@ -35,7 +35,13 @@ final class NewCategoryViewController: UIViewController {
     
     private lazy var longNameWarningLabel: UILabel = {
         let label = UILabel()
-        label.text = "Ограничение 24 символа"
+        label.text = String(
+            format: NSLocalizedString(
+                "warningLabel",
+                comment: "Limit charaters"
+            ),
+            24
+        )
         label.font = UIFont.systemFont(ofSize: 17)
         label.textAlignment = .center
         label.textColor = .red
@@ -45,7 +51,7 @@ final class NewCategoryViewController: UIViewController {
     }()
     
     private lazy var doneButtonView: CustomButton = {
-        let button = CustomButton(type: .create, title: "Готово")
+        let button = CustomButton(type: .create, title: NSLocalizedString("doneButtonTitle", comment: "Done button"))
         button.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         return button
     }()
@@ -76,7 +82,7 @@ final class NewCategoryViewController: UIViewController {
             doneButtonView.heightAnchor.constraint(equalToConstant: 60),
         ])
         
-        setupNavigationBar(title: "Новая категория")
+        setupNavigationBar(title: NSLocalizedString("newCategoryScreenTitle", comment: "Add category"))
         
     }
     

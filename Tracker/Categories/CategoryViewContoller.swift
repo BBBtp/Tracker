@@ -53,7 +53,7 @@ final class CategoryViewContoller: UIViewController {
     }()
     
     private lazy var createCategoryButton: CustomButton = {
-        let button = CustomButton(type: .create, title: "Добавить категорию")
+        let button = CustomButton(type: .create, title: NSLocalizedString("addCategoryButtonTitle", comment: "Add category"))
         button.addTarget(self, action: #selector(createCategory), for: .touchUpInside)
         return button
     }()
@@ -63,7 +63,7 @@ final class CategoryViewContoller: UIViewController {
         let label = UILabel()
         label.numberOfLines = 2
         label.textAlignment = .center
-        label.text = "Привычки и события можно объединить по смыслу"
+        label.text = NSLocalizedString("categoriesEmptyStateCaption", comment: "Placeholder")
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         return label
     }()
@@ -79,7 +79,7 @@ final class CategoryViewContoller: UIViewController {
         
         view.addSubview(tableView)
         view.addSubview(createCategoryButton)
-        setupNavigationBar(title: "Категория")
+        setupNavigationBar(title: NSLocalizedString("categoryTitle", comment: "Select category"))
         createPlaceholder()
         setupConstraints()
         setupPlaceholder()
@@ -103,21 +103,7 @@ extension CategoryViewContoller: UITableViewDataSource {
         
         cell.hideSeparator(isLastCell: indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1)
         
-        let numberOfRows = tableView.numberOfRows(inSection: indexPath.section)
-        
-        
-        if numberOfRows == 1 {
-            cell.layer.cornerRadius = 16
-            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else if indexPath.row == 0 {
-            cell.layer.cornerRadius = 16
-            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-        } else if indexPath.row == numberOfRows - 1 {
-            cell.layer.cornerRadius = 16
-            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-        } else {
-            cell.layer.cornerRadius = 0
-        }
+        cell.applySeparator(in: tableView, with: indexPath)
         
         return cell
     }

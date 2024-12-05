@@ -15,34 +15,27 @@ final class TrackersViewController: UIViewController {
     }()
     private let searchTextField: UISearchBar = {
         let searchBar = UISearchBar()
-        searchBar.placeholder = "Поиск"
+        searchBar.placeholder = NSLocalizedString("searchBarPlaceholder", comment: "Placeholder text for search bar")
         searchBar.layer.cornerRadius = 10
         searchBar.backgroundImage = UIImage()
         return searchBar
     }()
+
     private lazy var filterButton: UIButton = {
-        let button = UIButton()
-        let title = "Фильтры"
-        button.setTitle(title, for: .normal)
-        button.backgroundColor = .ypBlue
-        button.overrideUserInterfaceStyle = .light
-        button.titleLabel?.font = .systemFont(ofSize: 17, weight: .regular)
-        button.layer.cornerRadius = 16
-        button.layer.masksToBounds = true
+        let button = FilterButton(title: NSLocalizedString("filterScreenTitle", comment: "Filter button title"))
         button.addTarget(self, action: #selector(filterButtonDidTap), for: .touchUpInside)
-        button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
     private let trackTitle: UILabel = {
         let label = UILabel()
-        label.text = "Трекеры"
+        label.text = NSLocalizedString("trackersTabBarTitle", comment: "Trackers title")
         label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         return label
     }()
     private var placeholderImageView = UIImageView(image: UIImage(named: "place"))
     private let placeholderLabel: UILabel = {
         let label = UILabel()
-        label.text = "Что будем отслеживать?"
+        label.text = NSLocalizedString("emptyStateNoTrackersCaption", comment: "Trackers empty state")
         label.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         return label
     }()
@@ -360,7 +353,11 @@ extension TrackersViewController: TrackersCellDelegate {
 
 extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        applyFilterAndUpdateView(searhText: searchText)
+        if !searchText.isEmpty{
+            applyFilterAndUpdateView(searhText: searchText)
+        }else{
+            applyFilterAndUpdateView(searhText: nil)
+        }
         setupPlaceholder()
     }
     
@@ -402,7 +399,7 @@ extension TrackersViewController: TrackerTypeDelegate {
 
 extension TrackersViewController {
     private func createEditAction(for indexPath: IndexPath) -> UIAction {
-        let title = NSLocalizedString("contextMenu.edit.title", comment: "Edit item")
+        let title = NSLocalizedString("contextMenuEditOption", comment: "Edit item")
         return UIAction(title: title) { [weak self] _ in
             guard let self = self else { return }
             
@@ -424,19 +421,19 @@ extension TrackersViewController {
     }
     
     private func createDeleteAction(for indexPath: IndexPath) -> UIAction {
-        let title = NSLocalizedString("contextMenu.delete.title", comment: "Delete item")
+        let title = NSLocalizedString("contextMenuDeleteOption", comment: "Delete item")
         return UIAction(title: title, attributes: .destructive) { [weak self] action in
             guard let self = self else { return }
             
             let actionSheetController = UIAlertController(
-                title: NSLocalizedString("deleteConfirmation.title",
+                title: NSLocalizedString("deleteConfirmationMessage",
                                          comment: "Are you sure you want to delete this tracker?"),
                 message: nil,
                 preferredStyle: .actionSheet
             )
             
             let deleteAction = UIAlertAction(
-                title: NSLocalizedString("deleteButton.title",
+                title: NSLocalizedString("deleteButtonTitle",
                                          comment: "Delete button title"),
                 style: .destructive
             ) { [weak self] _ in
@@ -446,7 +443,7 @@ extension TrackersViewController {
             }
             
             let cancelAction = UIAlertAction(
-                title: NSLocalizedString("cancelButton.title",
+                title: NSLocalizedString("cancelButtonTitle",
                                          comment: "Cancel button title"),
                 style: .cancel,
                 handler: nil
@@ -462,8 +459,8 @@ extension TrackersViewController {
     }
     
     private func createPinAction(for indexPath: IndexPath, isPinned: Bool) -> UIAction {
-        let title = isPinned ? NSLocalizedString("contextMenu.unpin.title", comment: "Unpin item") :
-        NSLocalizedString("contextMenu.pin.title", comment: "Pin item")
+        let title = isPinned ? NSLocalizedString("contextMenuUnpinOption", comment: "Unpin item") :
+        NSLocalizedString("contextMenuPinOption", comment: "Pin item")
         
         return UIAction(title: title) { [weak self] action in
             guard let self = self else { return }
@@ -514,6 +511,4 @@ extension TrackersViewController: CreateHabbitDelegate {
         updateTracker(tracker: newTracker)
         collectionView.reloadData()
     }
-    
-    
 }

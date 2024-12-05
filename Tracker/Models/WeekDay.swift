@@ -16,24 +16,26 @@ enum WeekDay: Int, CaseIterable {
     }
     var fullText: String {
         switch self {
-        case .monday: return "Понедельник"
-        case .tuesday: return "Вторник"
-        case .wednesday: return "Среда"
-        case .thursday: return "Четверг"
-        case .friday: return "Пятница"
-        case .saturday: return "Суббота"
-        case .sunday: return "Воскресенье"
+        case .monday: return NSLocalizedString("mondayFull", comment: "Full name of Monday")
+        case .tuesday: return NSLocalizedString("tuesdayFull", comment: "Full name of Tuesday")
+        case .wednesday: return NSLocalizedString("wednesdayFull", comment: "Full name of Wednesday")
+        case .thursday: return NSLocalizedString("thursdayFull", comment: "Full name of Thursday")
+        case .friday: return NSLocalizedString("fridayFull", comment: "Full name of Friday")
+        case .saturday: return NSLocalizedString("saturdayFull", comment: "Full name of Saturday")
+        case .sunday: return NSLocalizedString("sundayFull", comment: "Full name of Sunday")
         }
     }
+
     var shortText: String {
         switch self {
-        case .monday: return "Пн"
-        case .tuesday: return "Вт"
-        case .wednesday: return "Ср"
-        case .thursday: return "Чт"
-        case .friday: return "Пт"
-        case .saturday: return "Сб"
-        case .sunday: return "Вс"
+        case .monday: return NSLocalizedString("mondayShort", comment: "Short name of Monday")
+        case .tuesday: return NSLocalizedString("tuesdayShort", comment: "Short name of Tuesday")
+        case .wednesday: return NSLocalizedString("wednesdayShort", comment: "Short name of Wednesday")
+        case .thursday: return NSLocalizedString("thursdayShort", comment: "Short name of Thursday")
+        case .friday: return NSLocalizedString("fridayShort", comment: "Short name of Friday")
+        case .saturday: return NSLocalizedString("saturdayShort", comment: "Short name of Saturday")
+        case .sunday: return NSLocalizedString("sundayShort", comment: "Short name of Sunday")
         }
     }
+
 }

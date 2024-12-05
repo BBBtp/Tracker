@@ -17,7 +17,7 @@ final class SheduleViewController: UIViewController, UITableViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setupNavigationBar(title: "Расписание")
+        setupNavigationBar(title: NSLocalizedString("scheduleTitle", comment: "Shedule"))
         setupUI()
     }
 }
@@ -43,20 +43,7 @@ extension SheduleViewController: UITabBarDelegate, UITableViewDataSource {
         cell.selectionStyle = .none
         cell.backgroundColor = .ypShedule
         
-        let isLastRow = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
-
-        if indexPath.row == 0 {
-            cell.layer.cornerRadius = 16
-            cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        } else if isLastRow {
-            cell.layer.cornerRadius = 16
-            cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: .greatestFiniteMagnitude)
-        } else {
-            cell.layer.cornerRadius = 0
-            cell.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        }
+        cell.applySeparator(in: tableView, with: indexPath)
         return cell
     }
 
@@ -94,7 +81,7 @@ extension SheduleViewController {
         
         tableView.heightAnchor.constraint(equalToConstant: CGFloat(7 * 75)).isActive = true
         
-        let buttonCreate = createButton(title: "Готово", action: #selector(createButtonTapped))
+        let buttonCreate = createButton(title: NSLocalizedString("doneButtonTitle", comment: "Done shedule"), action: #selector(createButtonTapped))
         stackView.addArrangedSubview(buttonCreate)
     }
     private func createButton(title: String, action: Selector) -> UIButton {

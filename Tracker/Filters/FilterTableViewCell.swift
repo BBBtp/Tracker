@@ -24,6 +24,13 @@ final class FilterCell: UITableViewCell {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
+    
+    private lazy var separatorLine: UIView = {
+        let view = UIView()
+        view.backgroundColor = .lightGray
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -31,7 +38,7 @@ final class FilterCell: UITableViewCell {
 
         contentView.addSubview(nameLabel)
         contentView.addSubview(isSelectedImage)
-
+        contentView.addSubview(separatorLine)
         NSLayoutConstraint.activate([
             nameLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             nameLabel.trailingAnchor.constraint(equalTo: isSelectedImage.leadingAnchor, constant: -16),
@@ -40,7 +47,12 @@ final class FilterCell: UITableViewCell {
             isSelectedImage.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
             isSelectedImage.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
             isSelectedImage.widthAnchor.constraint(equalToConstant: 24),
-            isSelectedImage.heightAnchor.constraint(equalToConstant: 24)
+            isSelectedImage.heightAnchor.constraint(equalToConstant: 24),
+            
+            separatorLine.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            separatorLine.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            separatorLine.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            separatorLine.heightAnchor.constraint(equalToConstant: 0.5)
         ])
     }
 
@@ -51,6 +63,10 @@ final class FilterCell: UITableViewCell {
     func configure(name: String, isSelected: Bool) {
         nameLabel.text = name
         isSelectedImage.isHidden = !isSelected
+    }
+    
+    func hideSeparator(isLastCell: Bool) {
+        separatorLine.isHidden = isLastCell
     }
 }
 

@@ -1,28 +1,74 @@
-emptyState.title = "Что будем отслеживать?";
-createTracker.mainTitle = "Создание трекера";
-createTracker.mainTitle.habit = "Привычка";
-createTracker.mainTitle.irregular = "Нерегулярное событие";
-createTracker.newHabit = "Новая привычка";
-createTracker.newIrregular = "Новое нерегулярное событие";
-createTracker.category = "Категория";
-createTracker.shedule = "Расписание";
-createTracker.inputPlaceholder = "Введите название трекера";
-createTracker.color = "Цвет";
-createTracker.emoji = "Emoji";
-createTracker.create = "Создать";
-createTracker.reject = "Отменить";
-createTracker.category.placeholder = "Привычки и события можно объединять по смыслу";
-createTracker.category.createCategory = "Добавить категорию";
-createTracker.category.createCategory.complete = "Готово";
-createTracker.shedule.monday = "Понедельник";
-createTracker.shedule.tuesday = "Вторник";
-createTracker.shedule.wednesday = "Среда";
-createTracker.shedule.thursday = "Четверг";
-createTracker.shedule.friday = "Пятница";
-createTracker.shedule.saturday = "Суббота";
-createTracker.shedule.sunday = "Воскресенье";
-createTracker.shedule.weekday = "Будние дни";
-createTracker.shedule.weekend = "Выходные";
-createTracker.shedule.all = "Каждый день";
-trackers = "Трекеры";
-statistic = "Статистика";
+onboardingDescriptionFirst = "Отслеживайте только то, что хотите";
+onboardingDescriptionSecond = "Даже если это не литры воды и йога";
+onboardingFinishButtonTitle = "Вот это технологии!";
+
+trackersTabBarTitle = "Трекеры";
+
+emptyStateNoTrackersCaption = "Что будем отслеживать?";
+emptyStateNoResultsCaption = "Ничего не найдено";
+emptyStateNoStatisticsCaption = "Анализировать пока нечего";
+
+statisticsTabBarTitle = "Статистика";
+
+searchBarPlaceholder = "Поиск";
+
+regularTrackerButtonTitle = "Привычка";
+irregularTrackerButtonTitle = "Нерегулярное событие";
+
+addTrackerScreenTitle = "Создание трекера";
+newRegularTrackerTitle = "Новая привычка";
+newIrregularTrackerTitle = "Новое нерегулярное событие";
+editRegularTrackerTitle = "Редактирование привычки";
+editIrregularTrackerTitle = "Редактирование нерегулярного события";
+newCategoryScreenTitle = "Новая категория";
+
+cancelButtonTitle = "Отменить";
+createButtonTitle = "Создать";
+addCategoryButtonTitle = "Добавить категорию";
+doneButtonTitle = "Готово";
+saveButtonTitle = "Сохранить";
+deleteButtonTitle = "Удалить";
+
+categoriesEmptyStateCaption = "Привычки и события можно\nобъединить по смыслу";
+
+newTrackerPlaceholder = "Введите название трекера";
+emojiGroupTitle = "Emoji";
+colorGroupTitle = "Цвет";
+
+newCategoryPlaceholder = "Введите название категории";
+
+categoryTitle = "Категория";
+scheduleTitle = "Расписание";
+scheduleEveryDayOption = "Каждый день";
+sheduleWeekDays = "Будние дни";
+sheduleWeekend = "Выходные";
+
+contextMenuPinOption = "Закрепить";
+contextMenuUnpinOption = "Открепить";
+contextMenuEditOption = "Редактировать";
+contextMenuDeleteOption = "Удалить";
+
+pinnedCategoriesTitle = "Закрепленные";
+deleteConfirmationMessage = "Уверены что хотите удалить трекер?";
+
+filterAllTitle = "Все трекеры";
+filterTodayTitle = "Трекеры на сегодня";
+filterCompletedTitle = "Завершенные";
+filterUncompletedTitle = "Не завершенные";
+filterScreenTitle = "Фильтры";
+
+mondayFull = "Понедельник";
+tuesdayFull = "Вторник";
+wednesdayFull = "Среда";
+thursdayFull = "Четверг";
+fridayFull = "Пятница";
+saturdayFull = "Суббота";
+sundayFull = "Воскресенье";
+
+mondayShort = "Пн";
+tuesdayShort = "Вт";
+wednesdayShort = "Ср";
+thursdayShort = "Чт";
+fridayShort = "Пт";
+saturdayShort = "Сб";
+sundayShort = "Вс";

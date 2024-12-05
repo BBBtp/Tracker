@@ -9,7 +9,7 @@ final class TrackerTypeViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setupNavigationBar(title: "Создание трекера")
+        setupNavigationBar(title: NSLocalizedString("addTrackerScreenTitle", comment: "Create tracker"))
         setupUI()
     }
     
@@ -20,9 +20,9 @@ final class TrackerTypeViewController: UIViewController {
         stackView.spacing = 16
         stackView.distribution = .fillEqually
         view.addSubview(stackView)
-        let buttonHabbit = createButton(title: "Привычка", action: #selector(habitButtonTaped))
+        let buttonHabbit = createButton(title: NSLocalizedString("regularTrackerButtonTitle", comment: "Habit button"), action: #selector(habitButtonTaped))
         stackView.addArrangedSubview(buttonHabbit)
-        let buttonOneEvent = createButton(title: "Нерегулярное событие", action: #selector(irregularEventButtonTaped))
+        let buttonOneEvent = createButton(title: NSLocalizedString("irregularTrackerButtonTitle", comment: "Irregular button"), action: #selector(irregularEventButtonTaped))
         stackView.addArrangedSubview(buttonOneEvent)
         
         NSLayoutConstraint.activate([

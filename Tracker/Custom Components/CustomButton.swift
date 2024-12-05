@@ -64,3 +64,39 @@ class CustomButton: UIButton {
         }
     }
 }
+
+class FilterButton: UIButton {
+    init(title: String) {
+        super.init(frame: .zero)
+        self.translatesAutoresizingMaskIntoConstraints = false
+        self.setTitle(title, for: .normal)
+        self.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        
+        configureButton()
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func configureButton() {
+            self.backgroundColor = .ypBlue
+            self.layer.cornerRadius = 16
+            self.titleLabel?.font = UIFont.systemFont(ofSize: 17, weight: .medium)
+            
+        self.addTarget(self, action: #selector(buttonPressed(_:)), for: .touchDown)
+        self.addTarget(self, action: #selector(buttonReleased(_:)), for: [.touchUpInside, .touchUpOutside, .touchCancel])
+    }
+    
+    @objc private func buttonPressed(_ sender: UIButton) {
+        if self.backgroundColor == .ypBlue {
+            sender.backgroundColor = UIColor.ypBlue.withAlphaComponent(0.5)
+        }
+    }
+    
+    @objc private func buttonReleased(_ sender: UIButton) {
+        if self.backgroundColor == UIColor.ypBlue.withAlphaComponent(0.5) {
+            sender.backgroundColor = .ypBlue
+        }
+    }
+}

@@ -45,11 +45,34 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
     
     private lazy var warningLabel: UILabel =  {
         let label = UILabel()
-        label.text = "Ограничение 38 символов"
+        label.text = String(
+            format: NSLocalizedString(
+                "warningLabel",
+                comment: "Limit charaters"
+            ),
+            38
+        )
         label.textColor = .red
         label.font = UIFont.systemFont(ofSize: 17 ,weight: .regular)
         label.isHidden = true
         label.textAlignment = .center
+        return label
+    }()
+    
+    private lazy var countLabel: UILabel = {
+        let label = UILabel()
+        label.text = String(
+            format: NSLocalizedString(
+                "numberOfDays",
+                comment: "Number of days"
+            ),
+            numberOfCompletions
+        )
+        label.textColor = .black
+        label.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        label.isHidden = true
+        label.textAlignment = .center
+        label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     private var emojiCollectionView: UICollectionView!
@@ -81,12 +104,13 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
         super.viewDidLoad()
         view.backgroundColor = .white
         inputNameCategory.delegate = self
-        setupNavigationBar(title: isHabitOrRegular ? "Новая привычка" : "Новое нерегулярное событие")
+        setupNavigationBar(title: isHabitOrRegular ? NSLocalizedString("newRegularTrackerTitle", comment: "New habit") : NSLocalizedString("newIrregularTrackerTitle", comment: "New irregular tracker"))
         setupUI()
         if !isNew{
             setColor(trackerColor)
             setEmoji(trackerEmoji)
             inputNameCategory.text = trackerName
+            countLabel.isHidden = false
         }
         
     }
@@ -100,20 +124,14 @@ final class CreateHabbitViewController: UIViewController, UITextFieldDelegate {
         
     }
     private func setColor(_ color: UIColor) {
-        // Поиск индекса переданного цвета в массиве Constants.colors
         if let index = Constants.colors.firstIndex(where: { $0.isEqualTo(color) }) {
-            // Создаем IndexPath для соответствующего элемента
             let indexPath = IndexPath(item: index, section: 0)
-            // Устанавливаем выбранный цвет
             selectedColor = indexPath
         }
     }
     private func setEmoji(_ emoji: String) {
-        // Поиск индекса переданного эмодзи в массиве Constants.emojis
         if let index = Constants.emojis.firstIndex(of: emoji) {
-            // Создаем IndexPath для соответствующего элемента
             let indexPath = IndexPath(item: index, section: 0)
-            // Устанавливаем выбранный эмодзи
             selectedEmojiIndex = indexPath
         }
     }
@@ -227,7 +245,7 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
                 fatalError("Failed to dequeue Trackers Header")
             }
             
-            header.titleLabel.text = "Emoji"
+            header.titleLabel.text = NSLocalizedString("emojiGroupTitle", comment: "Emoji collection")
             header.titleLabel.font = UIFont.boldSystemFont(ofSize: 19)
             header.titleLabel.backgroundColor = .white
             return header
@@ -235,7 +253,7 @@ extension CreateHabbitViewController: UICollectionViewDelegate, UICollectionView
             guard let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CreateHabitCVHeader.headerIdentifier, for: indexPath) as? CreateHabitCVHeader else{
                 fatalError("Failed to dequeue Header")
             }
-            header.titleLabel.text = "Цвет"
+            header.titleLabel.text = NSLocalizedString("colorGroupTitle", comment: "Color collection")
             header.titleLabel.font = UIFont.boldSystemFont(ofSize: 19)
             header.titleLabel.backgroundColor = .white
             
@@ -260,24 +278,13 @@ extension CreateHabbitViewController: UITableViewDelegate, UITableViewDataSource
         }
         
         switch indexPath.row {
-        case 0: cell.titleLabel.text = "Категория"
-        case 1: cell.titleLabel.text = "Расписание"
+        case 0: cell.titleLabel.text = NSLocalizedString("categoryTitle", comment: "Category group")
+        case 1: cell.titleLabel.text = NSLocalizedString("scheduleTitle", comment: "Shedule group")
         default: break
         }
         
         cell.backgroundColor = .ypShedule
-        let isLastRow = indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1
-            cell.configureSeparator(isLastRow: isLastRow)
-            
-            if indexPath.row == 0 {
-                cell.layer.cornerRadius = 16
-                cell.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
-            } else if isLastRow {
-                cell.layer.cornerRadius = 16
-                cell.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
-            } else {
-                cell.layer.cornerRadius = 0
-            }
+        cell.applySeparator(in: tableView, with: indexPath)
         return cell
     }
     
@@ -321,11 +328,11 @@ extension CreateHabbitViewController {
         var displayText: String?
         
         if selectedDays == Constants.allDays {
-            displayText = "Каждый день"
+            displayText = NSLocalizedString("scheduleEveryDayOption", comment: "Every day")
         } else if selectedDays == Constants.weekDays {
-            displayText = "Будние дни"
+            displayText = NSLocalizedString("sheduleWeekDays", comment: "Weekdays")
         } else if selectedDays == Constants.weekend {
-            displayText = "Выходные"
+            displayText = NSLocalizedString("sheduleWeekend", comment: "Weekend")
         } else {
             displayText = dayNames.joined(separator: ", ")
         }
@@ -349,7 +356,7 @@ extension CreateHabbitViewController {
     
     func setupUI() {
     
-        inputNameCategory.placeholder = "Введите название трекера"
+        inputNameCategory.placeholder = NSLocalizedString("newCategoryPlaceholder", comment: "Put tracker title")
         inputNameCategory.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         inputNameCategory.backgroundColor = .ypShedule
         inputNameCategory.layer.cornerRadius = 16
@@ -382,8 +389,8 @@ extension CreateHabbitViewController {
         stackViewButtons.backgroundColor = .white
         stackViewButtons.translatesAutoresizingMaskIntoConstraints = false
         
-        let buttonCreate = createButtonCreate(title: "Cоздать", action: #selector(createButtonTapped))
-        let buttonReject = createButtonReject(title: "Отменить", action: #selector(rejectButtonTapped))
+        let buttonCreate = createButtonCreate(title: isNew ? NSLocalizedString("createButtonTitle", comment: "Create tracker") :  NSLocalizedString("saveButtonTitle", comment: "Save update tracker"), action: #selector(createButtonTapped))
+        let buttonReject = createButtonReject(title: NSLocalizedString("cancelButtonTitle", comment: "Delete tracker"), action: #selector(rejectButtonTapped))
         buttonCreate.addTarget(self, action: #selector(createButtonTapped), for: .touchUpInside)
         buttonReject.addTarget(self, action: #selector(rejectButtonTapped), for: .touchUpInside)
         stackViewButtons.addArrangedSubview(buttonReject)
@@ -422,7 +429,7 @@ extension CreateHabbitViewController {
         let contentView = UIView()
         contentView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(contentView)
-        
+        contentView.addSubview(countLabel)
         contentView.addSubview(stackView)
         contentView.addSubview(stackViewCollections)
         
@@ -433,7 +440,10 @@ extension CreateHabbitViewController {
         NSLayoutConstraint.activate([
             emojiCollectionView.heightAnchor.constraint(equalToConstant: 230),
             colorCollectionView.heightAnchor.constraint(equalToConstant: 230),
-            
+            countLabel.bottomAnchor.constraint(equalTo: stackView.topAnchor, constant: -20),
+            countLabel.topAnchor.constraint(equalTo: contentView.topAnchor),
+            countLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            countLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             stackView.bottomAnchor.constraint(equalTo: stackViewCollections.topAnchor, constant: -20),
             stackViewCollections.bottomAnchor.constraint(equalTo: stackViewButtons.topAnchor, constant: -20),
             
@@ -452,7 +462,7 @@ extension CreateHabbitViewController {
             
             stackView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             stackView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            stackView.topAnchor.constraint(equalTo: contentView.topAnchor),
+          
             stackViewCollections.topAnchor.constraint(equalTo: stackView.bottomAnchor, constant: 20),
             stackViewCollections.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             stackViewCollections.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
@@ -475,14 +485,11 @@ extension CreateHabbitViewController {
     
     @objc private func createButtonTapped() {
         guard let name = inputNameCategory.text, !name.isEmpty else { return }
-        
-        // Проверка наличия выбранного цвета и эмодзи
         if let selectedColor = selectedColor, let selectedEmojiIndex = selectedEmojiIndex {
             let color = Constants.colors[selectedColor.item]
             let emoji = Constants.emojis[selectedEmojiIndex.item]
             
             if !isNew {
-                // Логика для обновления трекера
                 if isHabitOrRegular {
                     createHabbitDelegate?.didUpdateHabbit(
                         id: self.id,
@@ -504,7 +511,6 @@ extension CreateHabbitViewController {
                     )
                 }
             } else {
-                // Логика для создания трекера
                 if isHabitOrRegular {
                     createHabbitDelegate?.didCreateHabbit(
                         name: name,

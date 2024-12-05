@@ -1,36 +1,75 @@
-/*
-  Localizable.strings
-  Tracker
+onboardingDescriptionFirst = "Track only what you want";
+onboardingDescriptionSecond = "Even if it’s not about water intake or yoga";
+onboardingFinishButtonTitle = "What a technology!";
 
-  Created by Богдан Топорин on 04.12.2024.
-  
-*/
+trackersTabBarTitle = "Trackers";
 
-emptyState.title = "What will we track?";
-createTracker.mainTitle = "Creating a tracker";
-createTracker.mainTitle.habit = "Habit";
-createTracker.mainTitle.irregular = "Irregular event";
-createTracker.newHabit = "New habit";
-createTracker.newIrregular = "New irregular event";
-createTracker.category = "Category";
-createTracker.shedule = "Schedule";
-createTracker.inputPlaceholder = "Enter tracker name";
-createTracker.color = "Color";
-createTracker.emoji = "Emoji";
-createTracker.create = "Create";
-createTracker.reject = "Cancel";
-createTracker.category.placeholder = "Habits and events can be grouped by meaning";
-createTracker.category.createCategory = "Add category";
-createTracker.category.createCategory.complete = "Done";
-createTracker.shedule.monday = "Monday";
-createTracker.shedule.tuesday = "Tuesday";
-createTracker.shedule.wednesday = "Wednesday";
-createTracker.shedule.thursday = "Thursday";
-createTracker.shedule.friday = "Friday";
-createTracker.shedule.saturday = "Saturday";
-createTracker.shedule.sunday = "Sunday";
-createTracker.shedule.weekday = "Weekdays";
-createTracker.shedule.weekend = "Weekends";
-createTracker.shedule.all = "Every day";
-trackers = "Trackers";
-statistic = "Statistics";
+emptyStateNoTrackersCaption = "What will we track?";
+emptyStateNoResultsCaption = "Nothing found";
+emptyStateNoStatisticsCaption = "Nothing to analyze yet";
+
+statisticsTabBarTitle = "Statistics";
+
+searchBarPlaceholder = "Search";
+
+regularTrackerButtonTitle = "Habit";
+irregularTrackerButtonTitle = "Irregular Event";
+
+addTrackerScreenTitle = "Create Tracker";
+newRegularTrackerTitle = "New Habit";
+newIrregularTrackerTitle = "New Irregular Event";
+editRegularTrackerTitle = "Edit Habit";
+editIrregularTrackerTitle = "Edit Irregular Event";
+newCategoryScreenTitle = "New Category";
+
+cancelButtonTitle = "Cancel";
+createButtonTitle = "Create";
+addCategoryButtonTitle = "Add Category";
+doneButtonTitle = "Done";
+saveButtonTitle = "Save";
+deleteButtonTitle = "Delete";
+
+categoriesEmptyStateCaption = "Habits and events can\nbe grouped by meaning";
+
+newTrackerPlaceholder = "Enter tracker name";
+emojiGroupTitle = "Emoji";
+colorGroupTitle = "Color";
+
+newCategoryPlaceholder = "Enter category name";
+
+categoryTitle = "Category";
+scheduleTitle = "Schedule";
+scheduleEveryDayOption = "Every day";
+sheduleWeekDays = "Weekdays";
+sheduleWeekend = "Weekend";
+contextMenuPinOption = "Pin";
+contextMenuUnpinOption = "Unpin";
+contextMenuEditOption = "Edit";
+contextMenuDeleteOption = "Delete";
+
+pinnedCategoriesTitle = "Pinned";
+deleteConfirmationMessage = "Are you sure you want to delete this tracker?";
+
+filterAllTitle = "All Trackers";
+filterTodayTitle = "Today’s Trackers";
+filterCompletedTitle = "Completed";
+filterUncompletedTitle = "Not Completed";
+filterScreenTitle = "Filters";
+
+
+mondayFull = "Monday";
+tuesdayFull = "Tuesday";
+wednesdayFull = "Wednesday";
+thursdayFull = "Thursday";
+fridayFull = "Friday";
+saturdayFull = "Saturday";
+sundayFull = "Sunday";
+
+mondayShort = "Mon";
+tuesdayShort = "Tue";
+wednesdayShort = "Wed";
+thursdayShort = "Thu";
+fridayShort = "Fri";
+saturdayShort = "Sat";
+sundayShort = "Sun";
+

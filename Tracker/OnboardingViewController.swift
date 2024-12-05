@@ -20,7 +20,7 @@ final class OnboardingViewController: UIPageViewController {
         }
     
     private lazy var createButton: CustomButton  = {
-        let button = CustomButton(type: .create, title: "Вот это технологии!")
+        let button = CustomButton(type: .create, title: NSLocalizedString("onboardingFinishButtonTitle", comment: "Go up button"))
         button.addTarget(self, action: #selector(showApplication), for: .touchUpInside)
         return button
     }()
@@ -74,8 +74,8 @@ final class OnboardingViewController: UIPageViewController {
     
     private lazy var pages: [UIViewController] = {
         return [
-            createPages(backgroundImageName: "back1", textLabel: "Отслеживайте только то, что хотите"),
-            createPages(backgroundImageName: "back2", textLabel: "Даже если это не литры воды и йога")
+            createPages(backgroundImageName: "back1", textLabel: NSLocalizedString("onboardingDescriptionFirst", comment: "First page")),
+            createPages(backgroundImageName: "back2", textLabel: NSLocalizedString("onboardingDescriptionSecond", comment: "Second page"))
         ]
     }()
     

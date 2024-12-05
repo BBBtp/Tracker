@@ -43,7 +43,7 @@ final class FilterViewController: UIViewController {
             tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
         ])
 
-        title = NSLocalizedString("filter.title", comment: "Filter")
+        title = NSLocalizedString("filterScreenTitle", comment: "Filter")
     }
 }
 
@@ -62,8 +62,12 @@ extension FilterViewController: UITableViewDataSource {
 
         let item = allFilters[indexPath.row]
         let isSelected = currentFilter == item
+        cell.backgroundColor = .ypShedule
         cell.configure(name: item.localizedTitle, isSelected: isSelected)
-
+        cell.hideSeparator(isLastCell: indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1)
+        
+        cell.applySeparator(in: tableView, with: indexPath)
+        
         return cell
     }
     
@@ -76,6 +80,8 @@ extension FilterViewController: UITableViewDataSource {
         onFilterSelected?(selectedFilter)
         self.dismiss(animated: true)
     }
+    
+    
 }
 
 // MARK: - UITableViewDelegate
