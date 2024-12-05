@@ -165,7 +165,6 @@ extension TrackersViewController {
     
     @objc func datePickerValueChanged(_ sender: UIDatePicker) {
         currentDate = sender.date
-        print(currentDate)
         if currentFilter == .today && currentDate != Date() {
             currentFilter = .all
         }
@@ -173,6 +172,17 @@ extension TrackersViewController {
         
         configureViewState()
         
+    }
+    
+    func setDate(for date: Date) {
+        currentDate = date
+        datePicker.date = currentDate
+        if currentFilter == .today && currentDate != Date() {
+            currentFilter = .all
+        }
+        applyFilterAndUpdateView()
+        
+        configureViewState()
     }
     
     @objc func showTrackerType() {

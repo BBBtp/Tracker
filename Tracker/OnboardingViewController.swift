@@ -143,7 +143,7 @@ extension OnboardingViewController {
         guard let sceneDelegate = UIApplication.shared.connectedScenes.first?.delegate as? SceneDelegate else {
             return
         }
-        let tabBarController = sceneDelegate.setupTabBarController()
+        let tabBarController = TabBarConfigurator().setupTabBarController()
         sceneDelegate.window?.rootViewController = tabBarController
         UIView.transition(with: sceneDelegate.window!, duration: 0.3, options: .transitionCrossDissolve, animations: nil)
     }

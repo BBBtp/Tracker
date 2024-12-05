@@ -69,6 +69,13 @@ final class TrackerStore: NSObject {
             self.date = date
             self.filter = filter
         }
+    
+    override init() {
+        date = Date()
+        filter = .all
+        let context = CoreDataManager.shared.context
+        self.context = context
+    }
 //MARK: - Public methods
     func addTracker(category: String, tracker: TrackerModel) {
         do {
@@ -150,7 +157,38 @@ final class TrackerStore: NSObject {
         return (try? context.fetch(fetchRequest))?.isEmpty ?? true
     }
     
-    
+    func deleteAll() throws {
+        let fetchRequestRecords: NSFetchRequest<NSFetchRequestResult> = TrackerRecordCD.fetchRequest()
+        let fetchRequestTrackers: NSFetchRequest<NSFetchRequestResult> = TrackerCD.fetchRequest()
+        let fetchRequestCategories: NSFetchRequest<NSFetchRequestResult> = TrackerCategoryCD.fetchRequest()
+        
+        let batchDeleteRequestRecords = NSBatchDeleteRequest(fetchRequest: fetchRequestRecords)
+        let batchDeleteRequestTrackers = NSBatchDeleteRequest(fetchRequest: fetchRequestTrackers)
+        let batchDeleteRequestCategories = NSBatchDeleteRequest(fetchRequest: fetchRequestCategories)
+        
+        batchDeleteRequestRecords.resultType = .resultTypeObjectIDs
+        batchDeleteRequestTrackers.resultType = .resultTypeObjectIDs
+        batchDeleteRequestCategories.resultType = .resultTypeObjectIDs
+        
+        let resultRecords = try context.execute(batchDeleteRequestRecords) as? NSBatchDeleteResult
+        let resultTrackers = try context.execute(batchDeleteRequestTrackers) as? NSBatchDeleteResult
+        let resultCategories = try context.execute(batchDeleteRequestCategories) as? NSBatchDeleteResult
+        
+        if let deletedRecordIDs = resultRecords?.result as? [NSManagedObjectID] {
+            let changes = [NSDeletedObjectsKey: deletedRecordIDs]
+            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
+        }
+        
+        if let deletedTrackerIDs = resultTrackers?.result as? [NSManagedObjectID] {
+            let changes = [NSDeletedObjectsKey: deletedTrackerIDs]
+            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
+        }
+        
+        if let deletedCategoryIDs = resultCategories?.result as? [NSManagedObjectID] {
+            let changes = [NSDeletedObjectsKey: deletedCategoryIDs]
+            NSManagedObjectContext.mergeChanges(fromRemoteContextSave: changes, into: [context])
+        }
+    }
 //MARK: - Private CoreData methods
     private func addTrackerToCoreData(to category: String, tracker: TrackerModel) throws {
         let categoryEntity = try fetchOrAddCategory(category)
