@@ -73,3 +73,6 @@ fridayShort = "Fri";
 saturdayShort = "Sat";
 sundayShort = "Sun";
 
+bestDays = "Best period";
+average = "Average value";
+perfectDays = "Perfect days";

@@ -10,7 +10,6 @@ final class TrackersViewController: UIViewController {
         let picker = UIDatePicker()
         picker.preferredDatePickerStyle = .compact
         picker.datePickerMode = .date
-        picker.locale = Locale(identifier: "ru_RU")
         return picker
     }()
     private let searchTextField: UISearchBar = {
@@ -52,6 +51,13 @@ final class TrackersViewController: UIViewController {
         formatter.timeStyle = .none
         return formatter
     }()
+    
+    private lazy var placeholderView: PlaceholderEmptyView = {
+        let placeholder = PlaceholderEmptyView(frame: .zero)
+        placeholder.translatesAutoresizingMaskIntoConstraints = false
+        return placeholder
+    }()
+    
     private let dateLabel = UILabel()
     private var parameters: GeometricParameters
     private var trackers: [TrackerModel] = []
@@ -72,9 +78,9 @@ final class TrackersViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setupPlaceholder()
         searchTextField.delegate = self
         setupUI()
+        configureViewState()
     }
     
 }
@@ -83,11 +89,11 @@ extension TrackersViewController {
     private func addTracker(to category: String, tracker: TrackerModel) {
         trackerStore.addTracker(category: category, tracker: tracker)
         collectionView.reloadData()
-        setupPlaceholder()
+        configureViewState()
     }
     private func addTracker(tracker: TrackerModel) {
         addTracker(to: self.category , tracker: tracker)
-        setupPlaceholder()
+       configureViewState()
     }
     
     private func updateTracker(tracker: TrackerModel) {
@@ -107,7 +113,7 @@ extension TrackersViewController {
     func applyFilterAndUpdateView(searhText: String?) {
         trackerStore.applyFilter(currentFilter, on: currentDate, with: searhText)
         collectionView.reloadData()
-        setupPlaceholder()
+        configureViewState()
     }
     @objc private func filterButtonDidTap() {
         
@@ -140,7 +146,7 @@ extension TrackersViewController {
         }
         applyFilterAndUpdateView(searhText: nil)
         
-        setupPlaceholder()
+       configureViewState()
         
     }
     
@@ -239,30 +245,31 @@ extension TrackersViewController {
             searchTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
     }
-    
-    private func createPlaceholder() {
-        view.addSubview(placeholderImageView)
-        view.addSubview(placeholderLabel)
-        placeholderImageView.translatesAutoresizingMaskIntoConstraints = false
-        placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+    private func  createPlaceholder(){
+        view.addSubview(placeholderView)
         
         NSLayoutConstraint.activate([
-            placeholderImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            placeholderImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            placeholderLabel.topAnchor.constraint(equalTo: placeholderImageView.bottomAnchor, constant: 8),
-            placeholderLabel.centerXAnchor.constraint(equalTo: placeholderImageView.centerXAnchor)
+            placeholderView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            placeholderView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
     
-    private func setupPlaceholder() {
-        if trackerStore.isEmpty {
-            placeholderImageView.isHidden = false
-            placeholderLabel.isHidden = false
+    private func configureViewState() {
+        let isFilteredEmpty = trackerStore.isFilteredEmpty
+        let isDateEmpty = isFilteredEmpty ? trackerStore.isDateEmpty : false
+        
+        collectionView.isHidden = isFilteredEmpty
+        placeholderView.isHidden = !isFilteredEmpty
+        filterButton.isHidden = isDateEmpty
+        
+        if isDateEmpty {
+            placeholderView.config(with: NSLocalizedString("emptyStateNoResultsCaption", comment: "Trackers empty"), image: UIImage(named: "emoji2"))
+        } else if isFilteredEmpty {
+            placeholderView.config(with: NSLocalizedString("emptyStateNoTrackersCaption", comment: "Trackers empty"), image: UIImage(named: "place"))
         }
-        else {
-            placeholderImageView.isHidden = true
-            placeholderLabel.isHidden = true
-        }
+        
+        let filterTitleColor: UIColor = (currentFilter == .all || currentFilter == .today) ? .white : .ypColor1
+        filterButton.setTitleColor(filterTitleColor, for: .normal)
     }
     
     private func setupCollectionView() {
@@ -346,6 +353,7 @@ extension TrackersViewController: TrackersCellDelegate {
             let trackerCompletion = trackerStore.completionStatus(for: indexPath)
             let newCompletionStatus = !trackerCompletion.isCompleted
             trackerStore.changeCompletion(for: indexPath, to: newCompletionStatus)
+            NotificationCenter.default.post(name: .trackerCompletionUpdated, object: nil)
             collectionView.reloadItems(at: [indexPath])
         }
     }
@@ -355,18 +363,18 @@ extension TrackersViewController: UISearchBarDelegate {
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         if !searchText.isEmpty{
             applyFilterAndUpdateView(searhText: searchText)
+            configureViewState()
         }else{
             applyFilterAndUpdateView(searhText: nil)
+            configureViewState()
         }
-        setupPlaceholder()
+       
     }
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.resignFirstResponder()
     }
 }
-
-
 
 extension TrackersViewController: TrackerStoreDelegate {
     func didUpdate(_ update: TrackerStoreUpdate) {
@@ -439,7 +447,7 @@ extension TrackersViewController {
             ) { [weak self] _ in
                 self?.trackerStore.deleteTracker(at: indexPath)
                 self?.collectionView.reloadData()
-                self?.setupPlaceholder()
+                self?.configureViewState()
             }
             
             let cancelAction = UIAlertAction(

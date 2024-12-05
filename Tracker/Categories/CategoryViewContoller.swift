@@ -57,7 +57,11 @@ final class CategoryViewContoller: UIViewController {
         button.addTarget(self, action: #selector(createCategory), for: .touchUpInside)
         return button
     }()
-    
+    private lazy var emptyView: PlaceholderEmptyView = {
+        let placeholder = PlaceholderEmptyView(frame: .zero)
+        placeholder.translatesAutoresizingMaskIntoConstraints = false
+        return placeholder
+    }()
     private var placeholderImageView = UIImageView(image: UIImage(named: "place"))
     private let placeholderLabel: UILabel = {
         let label = UILabel()
@@ -143,18 +147,13 @@ extension CategoryViewContoller {
     }
     
     private func createPlaceholder() {
-        view.addSubview(placeholderImageView)
-        view.addSubview(placeholderLabel)
-        placeholderImageView.translatesAutoresizingMaskIntoConstraints = false
-        placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(emptyView)
+        emptyView.config(with:  NSLocalizedString("categoriesEmptyStateCaption", comment: "Placeholder"), image: UIImage(named: "place"))
         
         NSLayoutConstraint.activate([
-            placeholderImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            placeholderImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: -50),
-            placeholderLabel.topAnchor.constraint(equalTo: placeholderImageView.bottomAnchor, constant: 8),
-            placeholderLabel.centerXAnchor.constraint(equalTo: placeholderImageView.centerXAnchor),
-            placeholderLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
-            placeholderLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -80)
+            emptyView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            emptyView.centerYAnchor.constraint(equalTo: view.centerYAnchor,constant: -50),
+            
         ])
     }
 }

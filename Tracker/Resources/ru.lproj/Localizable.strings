@@ -72,3 +72,8 @@ thursdayShort = "Чт";
 fridayShort = "Пт";
 saturdayShort = "Сб";
 sundayShort = "Вс";
+
+bestDays = "Лучший период";
+average = "Среднее значение";
+perfectDays = "Идеальные дни";
+

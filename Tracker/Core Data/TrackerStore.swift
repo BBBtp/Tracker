@@ -29,10 +29,12 @@ protocol TrackerStoreDelegate: AnyObject {
 }
 
 final class TrackerStore: NSObject {
+    
     private let context: NSManagedObjectContext
     private let uiColorMarshalling = UIColorTransformer()
     private let uiWeekDayMarshalling = WeekDayArrayTransformer()
     weak var delegate: TrackerStoreDelegate?
+    private var statistic = StatisticsService()
     private var date: Date
     private var filter: FilterOptions
     private var insertedSections: [Int] = []
@@ -130,6 +132,22 @@ final class TrackerStore: NSObject {
     func categoryName(for indexPath: IndexPath) -> String {
         let trackerCoreData = fetchedResultsController.object(at: indexPath)
         return trackerCoreData.category?.title ?? ""
+    }
+    
+    var isFilteredEmpty: Bool {
+        if let fetchedObjects = fetchedResultsController.fetchedObjects {
+            return fetchedObjects.isEmpty
+        } else {
+            return true
+        }
+    }
+    
+    var isDateEmpty: Bool {
+        let fetchRequest: NSFetchRequest<TrackerCD> = TrackerCD.fetchRequest()
+        fetchRequest.predicate = allTrackersFetchPredicate()
+        fetchRequest.fetchLimit = 1
+        
+        return (try? context.fetch(fetchRequest))?.isEmpty ?? true
     }
     
     
@@ -360,25 +378,28 @@ final class TrackerStore: NSObject {
     }
     
     private func updateCompletionStatus(for trackerCoreData: TrackerCD, to isCompleted: Bool) throws {
-            let existingRecord = trackerCoreData.records?.first { record in
-                guard let trackerRecord = record as? TrackerRecordCD,
-                      let trackerDate = trackerRecord.date else {
-                    return false
-                }
-                return Calendar.current.isDate(trackerDate, inSameDayAs: date)
+        let existingRecord = trackerCoreData.records?.first { record in
+            guard let trackerRecord = record as? TrackerRecordCD,
+                  let trackerDate = trackerRecord.date else {
+                return false
             }
-            
-            if isCompleted, existingRecord == nil {
-                let trackerRecordCoreData = TrackerRecordCD(context: context)
-                trackerRecordCoreData.date = date
-                trackerRecordCoreData.trackerRecords = trackerCoreData
-                trackerRecordCoreData.id = trackerCoreData.id
-                try context.save()
-            } else if !isCompleted, let trackerRecordCoreData = existingRecord as? TrackerRecordCD {
-                context.delete(trackerRecordCoreData)
-                try context.save()
-            }
+            return Calendar.current.isDate(trackerDate, inSameDayAs: date)
         }
+        
+        if isCompleted, existingRecord == nil {
+            let trackerRecordCoreData = TrackerRecordCD(context: context)
+            trackerRecordCoreData.date = date
+            trackerRecordCoreData.trackerRecords = trackerCoreData
+            trackerRecordCoreData.id = trackerCoreData.id
+            statistic.onTrackerCompletion(for: date)
+            try context.save()
+        } else if !isCompleted, let trackerRecordCoreData = existingRecord as? TrackerRecordCD {
+            statistic.onTrackerUnCompletion(for: date)
+            context.delete(trackerRecordCoreData)
+            try context.save()
+        }
+    }
+
 }
 
 extension TrackerStore: NSFetchedResultsControllerDelegate {
