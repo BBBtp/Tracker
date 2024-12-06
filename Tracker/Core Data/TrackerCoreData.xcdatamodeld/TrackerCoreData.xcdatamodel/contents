@@ -2,6 +2,7 @@
 <model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22758" systemVersion="23G80" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithSwiftData="YES" userDefinedModelVersionIdentifier="">
     <entity name="TrackerCategoryCD" representedClassName="TrackerCategoryCD" syncable="YES" codeGenerationType="class">
         <attribute name="isSelected" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>
+        <attribute name="priority" optional="YES" attributeType="Integer 64" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="title" optional="YES" attributeType="String"/>
         <relationship name="trackerBeforePin" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="TrackerCD" inverseName="categoryBeforePin" inverseEntity="TrackerCD"/>
         <relationship name="trackers" toMany="YES" deletionRule="Nullify" destinationEntity="TrackerCD" inverseName="category" inverseEntity="TrackerCD"/>

@@ -284,7 +284,7 @@ extension TrackersViewController {
         filterButton.isHidden = isDateEmpty
         
         if isDateEmpty {
-            placeholderView.config(with: NSLocalizedString("emptyStateNoResultsCaption", comment: "Trackers empty"), image: UIImage(named: "emoji2"))
+            placeholderView.config(with: NSLocalizedString("emptyStateNoResultsCaption", comment: "Trackers empty"), image: UIImage(named: "emoji1"))
         } else if isFilteredEmpty {
             placeholderView.config(with: NSLocalizedString("emptyStateNoTrackersCaption", comment: "Trackers empty"), image: UIImage(named: "place"))
         }

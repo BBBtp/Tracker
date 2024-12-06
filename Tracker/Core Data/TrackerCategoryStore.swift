@@ -22,7 +22,9 @@ final class TrackerCategoryStore: NSObject {
     private var movedIndices: [(from: IndexPath, to: IndexPath)] = []
     private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCD> = {
         let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        fetchRequest.sortDescriptors = [
+                NSSortDescriptor(key: "title", ascending: true)
+            ]
         
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -57,35 +59,39 @@ final class TrackerCategoryStore: NSObject {
     
     func fetchOrCreatePinnedCategory() -> TrackerCategoryCD {
         let request = NSFetchRequest<TrackerCategoryCD>(entityName: "TrackerCategoryCD")
-        request.predicate = NSPredicate(format: "isSelected == %@", NSNumber(value: true))
+        request.predicate = NSCompoundPredicate(andPredicateWithSubpredicates: [
+            NSPredicate(format: "isSelected == %@", NSNumber(value: true)),
+            NSPredicate(format: "title == %@", "Закрепленные")
+        ])
 
         do {
             let result = try context.fetch(request)
             if let firstCategory = result.first {
                 return firstCategory
             } else {
-                return addCategorySelected("Закрепленные", isPinned: true)
+                return createPinnedCategory()
             }
         } catch {
             print("Ошибка при выполнении запроса: \(error.localizedDescription)")
-            return addCategorySelected("Закрепленные", isPinned: true)
+            return createPinnedCategory()
         }
     }
-
 //MARK: - private methods
-    private func addCategorySelected(_ name: String, isPinned: Bool) -> TrackerCategoryCD {
+    private func createPinnedCategory() -> TrackerCategoryCD {
         let category = TrackerCategoryCD(context: context)
-        category.title = name
-        category.isSelected = isPinned
+        category.title = "Закрепленные"
+        category.isSelected = true
+        category.priority = 0
 
         do {
             try context.save()
         } catch {
-            print("Ошибка при сохранении контекста: \(error.localizedDescription)")
+            print("Ошибка при сохранении новой закрепленной категории: \(error.localizedDescription)")
         }
 
         return category
     }
+
 
     private func addCategoryToCoreData(with title: String) throws {
         let newCategory = TrackerCategoryCD(context: context)

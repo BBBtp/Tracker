@@ -45,8 +45,11 @@ final class TrackerStore: NSObject {
     private var movedIndexes: [(from: IndexPath, to: IndexPath)] = []
     private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCD> = {
         let fetchRequest = TrackerCD.fetchRequest()
-        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true),
-                                        NSSortDescriptor(key: "category.title", ascending: true)]
+        fetchRequest.sortDescriptors = [
+            NSSortDescriptor(key: "category.priority", ascending: true),
+            NSSortDescriptor(key: "category.title", ascending: true),
+            NSSortDescriptor(key: "title", ascending: true)         
+        ]
         
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
@@ -55,6 +58,10 @@ final class TrackerStore: NSObject {
             cacheName: nil
         )
         controller.delegate = self
+        let trackers = try? context.fetch(fetchRequest)
+        for tracker in trackers ?? [] {
+            print("Tracker: \(tracker.title ?? "No title"), Category: \(tracker.category?.title ?? "No category")")
+        }
         try? controller.performFetch()
         return controller
     }()
@@ -325,60 +332,71 @@ final class TrackerStore: NSObject {
     }
     
     private func completedTrackersFetchPredicate(with searchQuery: String?) -> NSPredicate {
-        let finalPredicate = NSPredicate(
-            format: "SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count > 0",
-            #keyPath(TrackerCD.records),
-            date as NSDate)
-        
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        // Предикат для завершенных трекеров на указанную дату
+        let completedAtDatePredicate = NSPredicate(
+            format: "SUBQUERY(%K, $record, $record.date >= %@ AND $record.date < %@).@count > 0",
+            #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
+        )
+
+        // Финальный предикат
         guard let searchQuery else {
-            return finalPredicate
+            return completedAtDatePredicate
         }
-        
-        return combinePredicateWithSearchQuery(predicate: finalPredicate,
-                                               query: searchQuery)
+
+        return combinePredicateWithSearchQuery(predicate: completedAtDatePredicate, query: searchQuery)
     }
+
     
     private func uncompletedTrackersFetchPredicate(with searchQuery: String?) -> NSPredicate {
+        let startOfDay = Calendar.current.startOfDay(for: date)
+        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+
+        // Проверка на невыполненные записи
         let notCompletedAtDatePredicate = NSPredicate(
-            format: "SUBQUERY(%K, $record, $record != nil AND $record.date == %@).@count == 0",
-            #keyPath(TrackerCD.records),
-            date as NSDate
+            format: "SUBQUERY(%K, $record, $record.date >= %@ AND $record.date < %@).@count == 0",
+            #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
         )
-        
+
         let weekday = WeekDay.from(date: date)
         let weekdayString = weekday.map { String($0.rawValue) } ?? ""
-        
+
+        // Проверка на соответствие расписанию
         let schedulePredicate = NSPredicate(
             format: "%K CONTAINS[n] %@",
-            #keyPath(TrackerCD.timeTable),
-            weekdayString
+            #keyPath(TrackerCD.timeTable), weekdayString
         )
-        
+
         let isNotCompletedRegular = NSCompoundPredicate(
-            andPredicateWithSubpredicates: [notCompletedAtDatePredicate, schedulePredicate])
-        
+            andPredicateWithSubpredicates: [notCompletedAtDatePredicate, schedulePredicate]
+        )
+
+        // Проверка на нерегулярные трекеры
         let isIrregular = NSPredicate(
             format: "%K == %@",
-            #keyPath(TrackerCD.timeTable),
-            "")
-        
-        let isNotCompletedEver = NSPredicate(
-            format: "SUBQUERY(%K, $record, $record != nil).@count == 0",
-            #keyPath(TrackerCD.records))
-        
-        let isNotCompletedIrregular = NSCompoundPredicate(
-            andPredicateWithSubpredicates: [isIrregular, isNotCompletedEver])
-        
+            #keyPath(TrackerCD.type), ""
+        )
+
+        let isNotCompletedIrregular = NSPredicate(
+            format: "SUBQUERY(%K, $record, $record.date >= %@ AND $record.date < %@).@count == 0",
+            #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
+        )
+
+        // Финальный предикат
         let finalPredicate = NSCompoundPredicate(
-            orPredicateWithSubpredicates: [isNotCompletedRegular, isNotCompletedIrregular])
-        
+            orPredicateWithSubpredicates: [isNotCompletedRegular, isIrregular, isNotCompletedIrregular]
+        )
+
         guard let searchQuery else {
             return finalPredicate
         }
-        
-        return combinePredicateWithSearchQuery(predicate: finalPredicate,
-                                               query: searchQuery)
+
+        return combinePredicateWithSearchQuery(predicate: finalPredicate, query: searchQuery)
     }
+
+
     
     private func combinePredicateWithSearchQuery(predicate: NSPredicate, query: String) -> NSPredicate {
         let searchPredicate = NSPredicate(

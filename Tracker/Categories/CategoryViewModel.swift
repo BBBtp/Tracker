@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import UIKit
 
 typealias Binding<T> = (T) -> Void
 
