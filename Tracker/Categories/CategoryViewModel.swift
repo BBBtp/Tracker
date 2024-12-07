@@ -36,8 +36,11 @@ final class CategoryViewModel: TrackerCategoryStoreDelegate {
         return count
     }
     
-    func getCategory(at indexPath: IndexPath) -> String{
-        guard let title =  categoryStore.categoryName(at: indexPath) else { preconditionFailure("Error") }
+    func getCategory(at indexPath: IndexPath) -> String? {
+        guard let title = categoryStore.categoryName(at: indexPath) else {
+            return nil
+        }
+
         return title
     }
     

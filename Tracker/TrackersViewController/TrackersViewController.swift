@@ -278,15 +278,14 @@ extension TrackersViewController {
     private func configureViewState() {
         let isFilteredEmpty = trackerStore.isFilteredEmpty
         let isDateEmpty = isFilteredEmpty ? trackerStore.isDateEmpty : false
-        
         collectionView.isHidden = isFilteredEmpty
         placeholderView.isHidden = !isFilteredEmpty
         filterButton.isHidden = isDateEmpty
-        
-        if isDateEmpty {
-            placeholderView.config(with: NSLocalizedString("emptyStateNoResultsCaption", comment: "Trackers empty"), image: UIImage(named: "emoji1"))
-        } else if isFilteredEmpty {
+        if  isDateEmpty{
             placeholderView.config(with: NSLocalizedString("emptyStateNoTrackersCaption", comment: "Trackers empty"), image: UIImage(named: "place"))
+          
+        } else if isFilteredEmpty {
+            placeholderView.config(with: NSLocalizedString("emptyStateNoResultsCaption", comment: "Trackers empty"), image: UIImage(named: "emoji1"))
         }
         
         let filterTitleColor: UIColor = (currentFilter == .all || currentFilter == .today) ? .white : .ypColor1

@@ -47,24 +47,34 @@ final class TrackerStore: NSObject {
         let fetchRequest = TrackerCD.fetchRequest()
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(key: "category.priority", ascending: true),
-            NSSortDescriptor(key: "category.title", ascending: true),
-            NSSortDescriptor(key: "title", ascending: true)         
+            NSSortDescriptor(key: "title", ascending: true)
         ]
         
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
             managedObjectContext: context,
-            sectionNameKeyPath: "category.title",
+            sectionNameKeyPath: "category.priority",
             cacheName: nil
         )
         controller.delegate = self
-        let trackers = try? context.fetch(fetchRequest)
-        for tracker in trackers ?? [] {
-            print("Tracker: \(tracker.title ?? "No title"), Category: \(tracker.category?.title ?? "No category")")
+
+        // Проверка данных для отладки
+        do {
+            let trackers = try context.fetch(fetchRequest)
+           
+        } catch {
+            print("Error fetching trackers: \(error.localizedDescription)")
         }
-        try? controller.performFetch()
+
+        do {
+            try controller.performFetch()
+        } catch {
+            print("Error performing fetch: \(error.localizedDescription)")
+        }
+        
         return controller
     }()
+
     
     convenience init(for date: Date,with filter: FilterOptions) {
         let context = CoreDataManager.shared.context
@@ -354,7 +364,6 @@ final class TrackerStore: NSObject {
         let startOfDay = Calendar.current.startOfDay(for: date)
         let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
 
-        // Проверка на невыполненные записи
         let notCompletedAtDatePredicate = NSPredicate(
             format: "SUBQUERY(%K, $record, $record.date >= %@ AND $record.date < %@).@count == 0",
             #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
@@ -363,7 +372,6 @@ final class TrackerStore: NSObject {
         let weekday = WeekDay.from(date: date)
         let weekdayString = weekday.map { String($0.rawValue) } ?? ""
 
-        // Проверка на соответствие расписанию
         let schedulePredicate = NSPredicate(
             format: "%K CONTAINS[n] %@",
             #keyPath(TrackerCD.timeTable), weekdayString
@@ -373,10 +381,9 @@ final class TrackerStore: NSObject {
             andPredicateWithSubpredicates: [notCompletedAtDatePredicate, schedulePredicate]
         )
 
-        // Проверка на нерегулярные трекеры
         let isIrregular = NSPredicate(
             format: "%K == %@",
-            #keyPath(TrackerCD.type), ""
+            #keyPath(TrackerCD.timeTable), ""
         )
 
         let isNotCompletedIrregular = NSPredicate(
@@ -384,7 +391,6 @@ final class TrackerStore: NSObject {
             #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
         )
 
-        // Финальный предикат
         let finalPredicate = NSCompoundPredicate(
             orPredicateWithSubpredicates: [isNotCompletedRegular, isIrregular, isNotCompletedIrregular]
         )
@@ -397,7 +403,6 @@ final class TrackerStore: NSObject {
     }
 
 
-    
     private func combinePredicateWithSearchQuery(predicate: NSPredicate, query: String) -> NSPredicate {
         let searchPredicate = NSPredicate(
             format: "%K CONTAINS[c] %@",
@@ -452,8 +457,10 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
     }
     
     func sectionName(for section: Int) -> String {
-        return fetchedResultsController.sections?[section].name ?? ""
+        let priority = fetchedResultsController.sections?[section].name ?? ""
+        return TrackerCategoryStore().categoryName(from: priority)
     }
+    
     
     var numberOfSections: Int {
         fetchedResultsController.sections?.count ?? 0
