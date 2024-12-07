@@ -47,24 +47,33 @@ final class TrackerStore: NSObject {
         let fetchRequest = TrackerCD.fetchRequest()
         fetchRequest.sortDescriptors = [
             NSSortDescriptor(key: "category.priority", ascending: true),
-            NSSortDescriptor(key: "category.title", ascending: true),
-            NSSortDescriptor(key: "title", ascending: true)         
+            NSSortDescriptor(key: "title", ascending: true)
         ]
         
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
             managedObjectContext: context,
-            sectionNameKeyPath: "category.title",
+            sectionNameKeyPath: "category.priority",
             cacheName: nil
         )
         controller.delegate = self
-        let trackers = try? context.fetch(fetchRequest)
-        for tracker in trackers ?? [] {
-            print("Tracker: \(tracker.title ?? "No title"), Category: \(tracker.category?.title ?? "No category")")
+
+        // Проверка данных для отладки
+        do {
+            let trackers = try context.fetch(fetchRequest)
+        } catch {
+            print("Error fetching trackers: \(error.localizedDescription)")
         }
-        try? controller.performFetch()
+
+        do {
+            try controller.performFetch()
+        } catch {
+            print("Error performing fetch: \(error.localizedDescription)")
+        }
+        
         return controller
     }()
+
     
     convenience init(for date: Date,with filter: FilterOptions) {
         let context = CoreDataManager.shared.context
@@ -452,8 +461,10 @@ extension TrackerStore: NSFetchedResultsControllerDelegate {
     }
     
     func sectionName(for section: Int) -> String {
-        return fetchedResultsController.sections?[section].name ?? ""
+        let priority = fetchedResultsController.sections?[section].name ?? ""
+        return TrackerCategoryStore().categoryName(from: priority)
     }
+    
     
     var numberOfSections: Int {
         fetchedResultsController.sections?.count ?? 0

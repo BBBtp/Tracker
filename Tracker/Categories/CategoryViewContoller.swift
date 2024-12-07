@@ -102,7 +102,9 @@ extension CategoryViewContoller: UITableViewDataSource {
             return UITableViewCell()
         }
         
-        let category = viewModel.getCategory(at: indexPath)
+        guard let category = viewModel.getCategory(at: indexPath) else {
+            preconditionFailure("Error")
+        }
         cell.configure(title: category, isSelected: category == selectedCategory)
         
         cell.hideSeparator(isLastCell: indexPath.row == tableView.numberOfRows(inSection: indexPath.section) - 1)

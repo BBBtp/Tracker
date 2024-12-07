@@ -23,6 +23,7 @@ final class TrackerCategoryStore: NSObject {
     private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCD> = {
         let fetchRequest: NSFetchRequest<TrackerCategoryCD> = TrackerCategoryCD.fetchRequest()
         fetchRequest.sortDescriptors = [
+                NSSortDescriptor(key: "priority", ascending: false),
                 NSSortDescriptor(key: "title", ascending: true)
             ]
         
@@ -81,7 +82,7 @@ final class TrackerCategoryStore: NSObject {
         let category = TrackerCategoryCD(context: context)
         category.title = "Закрепленные"
         category.isSelected = true
-        category.priority = 0
+        category.priority = "1_" + "Закрепленные"
 
         do {
             try context.save()
@@ -96,10 +97,23 @@ final class TrackerCategoryStore: NSObject {
     private func addCategoryToCoreData(with title: String) throws {
         let newCategory = TrackerCategoryCD(context: context)
         newCategory.title = title
+        newCategory.priority = "2_" + title
+        newCategory.isSelected = false
         try context.save()
     }
     
-    
+    func categoryName(from priority: String) -> String {
+        guard priority.count > 2 else { return priority }
+
+        let trimmedName = String(priority.dropFirst(2))
+
+        if priority.hasPrefix("1_") {
+            return "Закрепленные"
+        } else {
+            return trimmedName
+        }
+    }
+
     func categoryName(at indexPath: IndexPath) -> String? {
         let categoryData = fetchedResultsController.object(at: indexPath)
         return categoryData.title
@@ -121,9 +135,22 @@ extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
     }
     
     func numberOfItemsInSection(_ section: Int) -> Int {
-        fetchedResultsController.sections?[section].numberOfObjects ?? 0
+        guard let sections = fetchedResultsController.sections, section < sections.count else {
+            return 0
+        }
         
+        let numberOfObjects = sections[section].numberOfObjects
+        
+        // Проверка на наличие категории "Закрепленные"
+        let hasPinnedCategory = sections[section].objects?.contains(where: {
+            guard let category = $0 as? TrackerCategoryCD else { return false }
+            return category.title == "Закрепленные"
+        }) ?? false
+        
+        return hasPinnedCategory ? numberOfObjects - 1 : numberOfObjects
     }
+
+
     
     func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
         insertedIndices.removeAll()
