@@ -363,7 +363,6 @@ final class TrackerStore: NSObject {
         let startOfDay = Calendar.current.startOfDay(for: date)
         let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
 
-        // Проверка на невыполненные записи
         let notCompletedAtDatePredicate = NSPredicate(
             format: "SUBQUERY(%K, $record, $record.date >= %@ AND $record.date < %@).@count == 0",
             #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
@@ -372,7 +371,6 @@ final class TrackerStore: NSObject {
         let weekday = WeekDay.from(date: date)
         let weekdayString = weekday.map { String($0.rawValue) } ?? ""
 
-        // Проверка на соответствие расписанию
         let schedulePredicate = NSPredicate(
             format: "%K CONTAINS[n] %@",
             #keyPath(TrackerCD.timeTable), weekdayString
@@ -382,10 +380,9 @@ final class TrackerStore: NSObject {
             andPredicateWithSubpredicates: [notCompletedAtDatePredicate, schedulePredicate]
         )
 
-        // Проверка на нерегулярные трекеры
         let isIrregular = NSPredicate(
             format: "%K == %@",
-            #keyPath(TrackerCD.type), ""
+            #keyPath(TrackerCD.timeTable), ""
         )
 
         let isNotCompletedIrregular = NSPredicate(
@@ -393,7 +390,6 @@ final class TrackerStore: NSObject {
             #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
         )
 
-        // Финальный предикат
         let finalPredicate = NSCompoundPredicate(
             orPredicateWithSubpredicates: [isNotCompletedRegular, isIrregular, isNotCompletedIrregular]
         )
@@ -406,7 +402,6 @@ final class TrackerStore: NSObject {
     }
 
 
-    
     private func combinePredicateWithSearchQuery(predicate: NSPredicate, query: String) -> NSPredicate {
         let searchPredicate = NSPredicate(
             format: "%K CONTAINS[c] %@",
