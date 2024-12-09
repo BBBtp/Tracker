@@ -3,7 +3,7 @@ import UIKit
 
 final class TrackersViewController: UIViewController {
     var collectionView: UICollectionView!
-    var currentDate: Date = Date()
+    var currentDate: Date = Date().dayStart
     private var currentFilter: FilterOptions = .all
     var category: String = ""
     private let yandexMetricaService = YandexMetricaService()

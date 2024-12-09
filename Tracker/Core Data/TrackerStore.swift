@@ -364,8 +364,8 @@ final class TrackerStore: NSObject {
         let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
 
         let notCompletedAtDatePredicate = NSPredicate(
-            format: "SUBQUERY(%K, $record, $record.date == %@).@count == 0",
-            #keyPath(TrackerCD.records), startOfDay as NSDate
+            format: "SUBQUERY(%K, $record, $record.date >= %@ AND $record.date < %@).@count == 0",
+            #keyPath(TrackerCD.records), startOfDay as NSDate, endOfDay as NSDate
         )
 
         let weekday = WeekDay.from(date: date)
@@ -388,8 +388,8 @@ final class TrackerStore: NSObject {
             andPredicateWithSubpredicates: [
                 isIrregularPredicate,
                 NSPredicate(
-                    format: "SUBQUERY(%K, $record, $record.date == %@).@count == 0",
-                    #keyPath(TrackerCD.records), startOfDay as NSDate
+                    format: "SUBQUERY(%K, $record, $record != nil).@count == 0",
+                    #keyPath(TrackerCD.records)
                 )
             ]
         )
